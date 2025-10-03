@@ -70,6 +70,10 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       fields: [],
     },
   });
+  
+  const isTemplate = form.watch("isTemplate");
+  const fields = form.watch("fields");
+  const watchedContent = form.watch("content");
 
   useEffect(() => {
     if (isEditing && prompt) {
@@ -82,6 +86,23 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
         });
     }
   }, [isEditing, prompt, form]);
+
+  useEffect(() => {
+    if (!isTemplate) return;
+
+    const currentFields = form.getValues("fields");
+    if (!currentFields) return;
+
+    const placeholdersInContent = watchedContent.match(/{{(.*?)}}/g) || [];
+    const fieldNamesInContent = placeholdersInContent.map(p => p.substring(2, p.length - 2).trim());
+
+    const fieldsToKeep = currentFields.filter(field => fieldNamesInContent.includes(field.name));
+
+    if (fieldsToKeep.length !== currentFields.length) {
+        form.setValue('fields', fieldsToKeep, { shouldValidate: true, shouldDirty: true });
+    }
+}, [watchedContent, isTemplate, form]);
+
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -217,10 +238,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       setIsFieldDialogOpen(true);
     }
   };
-
-  const isTemplate = form.watch("isTemplate");
-  const fields = form.watch("fields");
-  const watchedContent = form.watch("content");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
@@ -460,3 +477,5 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   );
 }
 
+
+    
