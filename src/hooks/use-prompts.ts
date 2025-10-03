@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Prompt } from '@/lib/types';
 
 const PROMPTS_STORAGE_KEY = 'promptcraft-prompts';
@@ -46,5 +46,14 @@ export function usePrompts() {
     });
   }, [savePrompts]);
 
-  return { prompts, addPrompt, isLoaded };
+  const allTags = useMemo(() => {
+    const tagsSet = new Set<string>();
+    prompts.forEach(prompt => {
+      prompt.tags.forEach(tag => tagsSet.add(tag));
+    });
+    return Array.from(tagsSet).sort();
+  }, [prompts]);
+
+
+  return { prompts, addPrompt, isLoaded, allTags };
 }
