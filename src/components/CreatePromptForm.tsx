@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2, Wand2 } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { usePrompts } from "@/hooks/use-prompts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -27,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import type { Prompt, PromptField } from "@/lib/types";
 import { CreateFieldDialog } from "./CreateFieldDialog";
+import { TemplateTextarea } from "./TemplateTextarea";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title is too long."),
@@ -48,6 +48,8 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const [tagInput, setTagInput] = useState("");
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<PromptField | null>(null);
+  const [selectionForField, setSelectionForField] = useState<string | null>(null);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -94,6 +96,14 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const handleAddField = (field: PromptField) => {
     const currentFields = form.getValues("fields");
     const existingFieldIndex = currentFields.findIndex(f => f.id === field.id);
+    
+    if (selectionForField) {
+      const currentContent = form.getValues("content");
+      const updatedContent = currentContent.replace(selectionForField, `{{${field.name}}}`);
+      form.setValue("content", updatedContent);
+      setSelectionForField(null);
+    }
+    
     if (existingFieldIndex > -1) {
       // Update existing field
       const updatedFields = [...currentFields];
@@ -114,6 +124,12 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const removeField = (fieldId: string) => {
     const currentFields = form.getValues("fields");
     form.setValue("fields", currentFields.filter(f => f.id !== fieldId));
+  };
+
+  const handleMakeField = (selection: string) => {
+    setSelectionForField(selection);
+    setEditingField({ id: '', name: selection, type: 'text' });
+    setIsFieldDialogOpen(true);
   };
   
   const isTemplate = form.watch("isTemplate");
@@ -174,10 +190,10 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                 <FormItem>
                   <FormLabel>Prompt Content</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="e.g., 'Generate 5 blog post ideas about {{topic}}. The ideas should be engaging and SEO-friendly...'"
-                      className="min-h-[150px]"
-                      {...field}
+                    <TemplateTextarea 
+                      field={field} 
+                      isTemplate={isTemplate}
+                      onMakeField={handleMakeField}
                     />
                   </FormControl>
                   <FormDescription>
@@ -268,10 +284,10 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                               <p className="text-sm text-muted-foreground">Type: {field.type}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => handleEditField(field)}>
+                              <Button variant="ghost" size="icon" type="button" onClick={() => handleEditField(field)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => removeField(field.id)}>
+                              <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field.id)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             </div>
@@ -300,7 +316,11 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </Card>
     <CreateFieldDialog 
         isOpen={isFieldDialogOpen} 
-        onClose={() => setIsFieldDialogOpen(false)}
+        onClose={() => {
+            setIsFieldDialogOpen(false);
+            setEditingField(null);
+            setSelectionForField(null);
+        }}
         onAddField={handleAddField}
         existingField={editingField}
     />
