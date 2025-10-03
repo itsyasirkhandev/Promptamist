@@ -1,78 +1,103 @@
 /**
- * @fileoverview Firestore Security Rules for the application.
+ * @fileOverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model.  Users can only
- * create, read, update, and delete their own data.  No cross-user access
- * is permitted except where explicitly allowed.  Schema validation is not enforced in this prototype to allow rapid iteration
+ * This ruleset enforces a user-ownership model for prompts and user profiles. Users can only read and write their own data. Public listing of prompts is allowed.
  *
  * Data Structure:
- * All user data is stored under the `/users/{userId}` path.
+ * - /users/{userId}: Stores user profile information.
+ * - /prompts/{promptId}: Stores AI prompts created by users.
  *
  * Key Security Decisions:
- * - Users can only access their own profile data.
- * - Listing all users is disallowed for privacy reasons.
+ * - Users can only create, update, and delete their own prompts.
+ * - Users can only read and write their own user profiles.
+ * - Public listing of prompts is allowed for all users.
  *
  * Denormalization for Authorization:
- * - The `uid` is duplicated in the document as well as the path to ensure
- *   consistency and prevent unauthorized data modification.
+ * The 'Prompt' entity requires the 'userId' field to be present for authorization.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the user is signed in.
-     * @return {boolean} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
-     * @param {string} userId - The user ID to compare against.
-     * @return {boolean} True if the user is the owner, false otherwise.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user is the owner of the existing document.
-     * @param {string} userId - The user ID to compare against.
-     * @return {boolean} True if the user is the owner, false otherwise.
-     */
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Rules for user profiles.
+     * @description Protects user profile information.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'user123' can create their profile at /users/user123.
-     * @allow (get) - User with UID 'user456' can read their profile at /users/user456.
-     * @allow (update) - User with UID 'user789' can update their profile at /users/user789.
-     * @allow (delete) - User with UID 'user101' can delete their profile at /users/user101.
-     * @deny (create) - User with UID 'user123' cannot create a profile at /users/user456 (mismatched UID).
-     * @deny (get) - User with UID 'user456' cannot read the profile at /users/user789 (mismatched UID).
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree. Validates relational integrity between documents.
+     * @allow (create) - User with UID 'user123' can create their own profile at /users/user123.
+     * @allow (get, update, delete) - User with UID 'user123' can read, update, and delete their own profile at /users/user123.
+     * @deny (create) - User with UID 'user456' cannot create a profile at /users/user123.
+     * @deny (get, update, delete) - User with UID 'user456' cannot read, update, or delete the profile at /users/user123.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId} {
-      // Only allow authenticated users to create their own user document.
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the user is the owner of the document
+      function isOwner(userId) {
+        return isSignedIn() && request.auth.uid == userId;
+      }
+
+      // Helper function to check if the user is the existing owner of the document (for update/delete)
+      function isExistingOwner(userId) {
+        return isSignedIn() && request.auth.uid == userId && resource.data.uid == userId;
+      }
+
+      // Allow a user to create their own profile if the UID matches the document ID
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.uid == userId;
 
-      // Only allow the user to read their own user document.
+      // Allow a user to get their own profile
       allow get: if isSignedIn() && isOwner(userId);
 
-      // Prevent listing of all users.
-      allow list: if false;
+      // Allow a user to update their own profile, enforcing immutability of the UID
+      allow update: if isExistingOwner(userId);
 
-      // Only allow the user to update their own user document. The `uid` field is immutable.
-      allow update: if isExistingOwner(userId) && request.resource.data.uid == resource.data.uid;
-
-      // Only allow the user to delete their own user document.
+      // Allow a user to delete their own profile
       allow delete: if isExistingOwner(userId);
+
+      // Prevent listing all users.
+      allow list: if false;
+    }
+
+    /**
+     * @description Manages AI prompts created by users.
+     * @path /prompts/{promptId}
+     * @allow (create) - User with UID 'user123' can create a prompt with userId 'user123'.
+     * @allow (get, list) - Any user (or no user) can read any prompt.
+     * @allow (update, delete) - User with UID 'user123' can update/delete their own prompt at /prompts/{promptId} if the prompt's userId is 'user123'.
+     * @deny (create) - User with UID 'user456' cannot create a prompt with userId 'user123'.
+     * @deny (update, delete) - User with UID 'user456' cannot update/delete the prompt at /prompts/{promptId} if the prompt's userId is 'user123'.
+     * @principle Enforces document ownership for writes, allows public reads, and validates relational integrity.
+     */
+    match /prompts/{promptId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the user is the owner of the prompt
+      function isOwner(promptUserId) {
+        return isSignedIn() && request.auth.uid == promptUserId;
+      }
+
+      // Helper function to check if the user is the existing owner of the prompt (for update/delete)
+      function isExistingOwner(promptUserId) {
+        return isSignedIn() && request.auth.uid == promptUserId;
+      }
+
+      // Allow anyone to read prompts
+      allow get, list: if true;
+
+      // Allow a user to create a prompt if they are the owner
+      allow create: if isSignedIn() && isOwner(request.resource.data.userId);
+
+      // Allow a user to update a prompt if they are the owner
+      allow update: if isExistingOwner(resource.data.userId);
+
+      // Allow a user to delete a prompt if they are the owner
+      allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
