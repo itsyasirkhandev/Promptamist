@@ -217,60 +217,62 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
           <ScrollArea className="h-full">
             <div className="px-6 py-4">
                 <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
-                <form className="space-y-4" key={prompt.id}>
-                {(prompt.fields || []).map((field) => (
-                    <FormField
-                    key={field.id}
-                    control={form.control}
-                    name={field.name}
-                    render={({ field: formField }) => (
-                        <FormItem>
-                            <FormLabel>{field.name}</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                {field.type === 'textarea' ? (
-                                    <>
-                                        <Textarea {...formField} value={formField.value ?? ''} className="pr-20" maxLength={3000}/>
-                                        <div className="absolute bottom-2 right-12 text-xs text-muted-foreground">
-                                            {(formField.value ?? '').length}/3000
-                                        </div>
-                                    </>
-                                ) : field.type === 'choices' && field.options ? (
-                                    <Select onValueChange={formField.onChange} defaultValue={formField.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={`Select ${field.name}`} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    <>
-                                        <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-20" maxLength={100} />
-                                        <div className="absolute bottom-0 right-12 flex h-full items-center text-xs text-muted-foreground">
-                                            {(formField.value ?? '').length}/100
-                                        </div>
-                                    </>
-                                )}
-                                {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
-                                        onClick={() => handlePaste(field.name)}
-                                    >
-                                        <ClipboardPaste className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                ))}
-                </form>
+                <Form {...form}>
+                  <form className="space-y-4" key={prompt.id}>
+                  {(prompt.fields || []).map((field) => (
+                      <FormField
+                      key={field.id}
+                      control={form.control}
+                      name={field.name}
+                      render={({ field: formField }) => (
+                          <FormItem>
+                              <FormLabel>{field.name}</FormLabel>
+                              <FormControl>
+                                  <div className="relative">
+                                  {field.type === 'textarea' ? (
+                                      <>
+                                          <Textarea {...formField} value={formField.value ?? ''} className="pr-20" maxLength={3000}/>
+                                          <div className="absolute bottom-2 right-12 text-xs text-muted-foreground">
+                                              {(formField.value ?? '').length}/3000
+                                          </div>
+                                      </>
+                                  ) : field.type === 'choices' && field.options ? (
+                                      <Select onValueChange={formField.onChange} defaultValue={formField.value}>
+                                          <SelectTrigger>
+                                              <SelectValue placeholder={`Select ${field.name}`} />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                              {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                          </SelectContent>
+                                      </Select>
+                                  ) : (
+                                      <>
+                                          <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-20" maxLength={100} />
+                                          <div className="absolute bottom-0 right-12 flex h-full items-center text-xs text-muted-foreground">
+                                              {(formField.value ?? '').length}/100
+                                          </div>
+                                      </>
+                                  )}
+                                  {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
+                                      <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                                          onClick={() => handlePaste(field.name)}
+                                      >
+                                          <ClipboardPaste className="h-4 w-4" />
+                                      </Button>
+                                  )}
+                                  </div>
+                              </FormControl>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                  ))}
+                  </form>
+                </Form>
             </div>
           </ScrollArea>
           <div className="h-full py-4 pr-6">
@@ -301,5 +303,3 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     </>
   );
 }
-
-    
