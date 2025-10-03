@@ -25,7 +25,7 @@ export function UserProfile() {
   };
 
   if (!isLoaded) {
-    return <Skeleton className="h-8 w-24" />;
+    return <Skeleton className="h-10 w-full" />;
   }
 
   if (!user) {
@@ -43,13 +43,13 @@ export function UserProfile() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-auto px-2 space-x-2 hover:bg-transparent hover:text-current">
+        <Button variant="ghost" className="relative h-auto w-full justify-start px-2 space-x-2">
            <Avatar className="h-8 w-8">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
             <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col items-start hidden sm:flex">
-            <span className="text-xs font-semibold">{user.displayName || 'User'}</span>
+          <div className="hidden flex-col items-start group-data-[collapsible=offcanvas]:hidden group-data-[collapsible=icon]:hidden sm:flex">
+            <span className="text-xs font-semibold text-foreground">{user.displayName || 'User'}</span>
             <span className="text-xs text-muted-foreground">{user.email}</span>
           </div>
         </Button>
