@@ -31,7 +31,7 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
     return () => {
         document.removeEventListener("selectionchange", handleSelect);
     }
-  }, [handleSelect])
+  }, [])
 
   const highlightedContent = useMemo(() => {
     if (!isTemplate) return field.value;
@@ -62,10 +62,11 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
         placeholder="e.g., 'Generate 5 blog post ideas about {{topic}}. The ideas should be engaging and SEO-friendly...'"
         className={cn(
           'min-h-[150px] font-mono leading-relaxed tracking-wide',
-          isTemplate ? 'bg-transparent text-transparent caret-foreground selection:bg-primary/20 selection:text-transparent' : ''
+          isTemplate ? 'bg-transparent caret-foreground' : ''
         )}
       />
     </div>
   );
 }
+
 
