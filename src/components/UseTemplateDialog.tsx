@@ -14,11 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 import { Prompt, PromptField } from '@/lib/types';
-import { Copy, Check, Wand2, Save, PlusCircle, X } from 'lucide-react';
-import { usePrompts } from '@/hooks/use-prompts';
-import { Badge } from './ui/badge';
-import { Label } from './ui/label';
-import { Separator } from './ui/separator';
+import { Copy, Check, Wand2, Save } from 'lucide-react';
 import { SavePromptDialog } from './SavePromptDialog';
 
 
@@ -78,7 +74,8 @@ const generatePromptString = (template: string, formValues: Record<string, any>)
             result = result.replace(placeholder, replacement);
         }
     }
-    return result;
+    // Remove any placeholders that were not filled
+    return result.replace(/{{.*?}}/g, '');
 };
 
 
@@ -100,22 +97,13 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
     };
     
     const renderedPreview = useMemo(() => {
-        if (!generatedPrompt) return null;
-        return generatedPrompt.split(/({{.*?}})/g).map((part, index) => {
-            if (part.match(/{{.*?}}/g)) {
-                return (
-                    <span key={index} className="bg-destructive/10 text-destructive rounded-sm px-1 py-0.5">
-                        {part}
-                    </span>
-                );
-            }
-            return <span key={index}>{part}</span>;
-        });
+        // We'll just show the final text, not highlighted placeholders for simplicity.
+        return generatedPrompt;
     }, [generatedPrompt]);
 
     return (
         <div className="flex flex-col h-full bg-muted/50 rounded-lg border">
-            <div className="flex-shrink-0 flex items-center justify-between p-4 pb-2">
+            <div className="flex-shrink-0 flex items-center justify-between p-4 border-b">
                 <h3 className="text-sm font-semibold">Live Preview</h3>
                 <Button variant="ghost" size="sm" onClick={handleCopyToClipboard} disabled={!generatedPrompt}>
                     {isCopied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
@@ -123,8 +111,8 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
                 </Button>
             </div>
             <ScrollArea className="flex-1">
-                <div className="text-sm prose prose-sm dark:prose-invert max-w-full whitespace-pre-wrap p-4 pt-0">
-                    {renderedPreview}
+                <div className="text-sm prose prose-sm dark:prose-invert max-w-full whitespace-pre-wrap p-4">
+                    {generatedPrompt || <span className="text-muted-foreground">Fill out the fields to see a preview...</span>}
                 </div>
             </ScrollArea>
         </div>
@@ -193,14 +181,14 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Use Template: {prompt.title}</DialogTitle>
           <DialogDescription>Fill in the fields to generate a new prompt from this template.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[calc(100%-8rem)]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
           <ScrollArea className="h-full">
-            <div className="pr-6">
+            <div className="pr-4">
                 <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
                 <FormProvider {...form}>
                     <form className="space-y-4" key={prompt.id}>
@@ -238,15 +226,12 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
             </div>
           </ScrollArea>
           <ScrollArea className="h-full">
-             <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Live Preview</h3>
-                <div className="rounded-md border bg-muted p-4 min-h-[200px] whitespace-pre-wrap text-sm">
-                    <LivePreview control={form.control} template={prompt.content} />
-                </div>
+             <div className="h-full">
+                <LivePreview control={form.control} template={prompt.content} />
             </div>
           </ScrollArea>
         </div>
-         <DialogFooter>
+         <DialogFooter className="flex-shrink-0">
             <Button onClick={handleSaveClick} disabled={!form.formState.isValid}>
                 <Save className="mr-2 h-4 w-4" />
                 Save New Prompt
