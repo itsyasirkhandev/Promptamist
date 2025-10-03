@@ -43,7 +43,7 @@ export function UserProfile() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-auto px-2 space-x-2 hover:bg-transparent">
+        <Button variant="ghost" className="relative h-8 w-auto px-2 space-x-2 hover:bg-transparent hover:text-current">
            <Avatar className="h-8 w-8">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
             <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback>
@@ -58,6 +58,7 @@ export function UserProfile() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
