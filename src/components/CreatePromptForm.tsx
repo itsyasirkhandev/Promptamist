@@ -59,7 +59,13 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: isEditing && prompt ? {
+        title: prompt.title,
+        content: prompt.content,
+        tags: prompt.tags || [],
+        isTemplate: prompt.isTemplate || false,
+        fields: prompt.fields || [],
+    } : {
       title: "",
       content: "",
       tags: [],
@@ -71,18 +77,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const isTemplate = form.watch("isTemplate");
   const fields = form.watch("fields");
   const watchedContent = form.watch("content");
-
-  useEffect(() => {
-    if (isEditing && prompt) {
-        form.reset({
-            title: prompt.title,
-            content: prompt.content,
-            tags: prompt.tags,
-            isTemplate: prompt.isTemplate || false,
-            fields: prompt.fields || [],
-        });
-    }
-  }, [isEditing, prompt, form]);
 
   useEffect(() => {
     if (!isTemplate) {
@@ -256,7 +250,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       fields: values.isTemplate
         ? values.fields.map(f => {
             const field: Partial<PromptField> = { ...f };
-            if (!field.options) {
+            if (field.type !== 'choices' || !field.options) {
               delete field.options;
             }
             return field as PromptField;
@@ -504,4 +498,3 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   );
 }
 
-    
