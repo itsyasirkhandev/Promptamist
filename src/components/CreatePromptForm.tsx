@@ -1,12 +1,14 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2, Wand2 } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2 } from "lucide-react";
+import { Menu, Item, useContextMenu } from 'react-contexify';
+import 'react-contexify/dist/ReactContexify.css';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import type { Prompt, PromptField } from "@/lib/types";
 import { CreateFieldDialog } from "./CreateFieldDialog";
-import { TemplateTextarea } from "./TemplateTextarea";
+import { ContentEditable } from "./ContentEditable";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title is too long."),
@@ -36,6 +38,8 @@ const formSchema = z.object({
   isTemplate: z.boolean().default(false),
   fields: z.array(z.custom<PromptField>()).default([]),
 });
+
+const CONTEXT_MENU_ID = "prompt-editor-menu";
 
 type PromptFormProps = {
     prompt?: Prompt;
@@ -49,9 +53,10 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const [tagInput, setTagInput] = useState("");
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<PromptField | null>(null);
-  const [selectionForField, setSelectionForField] = useState<string | null>(null);
-  const [hasSelection, setHasSelection] = useState(false);
+  const [selection, setSelection] = useState<Range | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
+  const { show } = useContextMenu({ id: CONTEXT_MENU_ID });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,12 +104,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     const currentFields = form.getValues("fields");
     const existingFieldIndex = currentFields.findIndex(f => f.id === field.id);
     
-    if (selectionForField && !editingField) {
-      const currentContent = form.getValues("content");
-      const updatedContent = currentContent.replace(selectionForField, `{{${field.name}}}`);
-      form.setValue("content", updatedContent);
-    }
-    
     if (existingFieldIndex > -1) {
       // Update existing field
       const updatedFields = [...currentFields];
@@ -114,8 +113,35 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       // Add new field
       form.setValue("fields", [...currentFields, field]);
     }
+    
+    // Insert placeholder at selection
+    if (selection) {
+      const fieldPlaceholder = `{{${field.name}}}`;
+      const sel = window.getSelection();
+      if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(selection);
+          
+          selection.deleteContents();
+          const textNode = document.createTextNode(fieldPlaceholder);
+          selection.insertNode(textNode);
+          
+          // Move cursor after inserted text
+          const newRange = document.createRange();
+          newRange.setStartAfter(textNode);
+          newRange.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+
+          if (editorRef.current) {
+            form.setValue('content', editorRef.current.innerText, { shouldValidate: true, shouldDirty: true });
+          }
+      }
+    }
+
     setEditingField(null);
-    setSelectionForField(null);
+    setSelection(null);
+    setIsFieldDialogOpen(false);
   };
   
   const handleEditField = (field: PromptField) => {
@@ -127,21 +153,32 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     const currentFields = form.getValues("fields");
     form.setValue("fields", currentFields.filter(f => f.id !== fieldId));
   };
-
-  const handleMakeField = () => {
-    if (selectionForField) {
-        setEditingField({ id: '', name: selectionForField, type: 'text' });
-        setIsFieldDialogOpen(true);
+  
+  const handleContextMenu = (event: React.MouseEvent) => {
+    if (form.getValues('isTemplate')) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        if (editorRef.current?.contains(range.commonAncestorContainer)) {
+          event.preventDefault();
+          setSelection(range.cloneRange());
+          show({ event });
+        }
+      }
     }
   };
 
-  const handleSelectionChange = (hasSelection: boolean, selectionText: string) => {
-    setHasSelection(hasSelection);
-    setSelectionForField(hasSelection ? selectionText : null);
-  }
-  
+  const handleMakeFieldClick = () => {
+    if (selection) {
+      const selectedText = selection.toString().trim();
+      setEditingField({ id: '', name: selectedText, type: 'text' });
+      setIsFieldDialogOpen(true);
+    }
+  };
+
   const isTemplate = form.watch("isTemplate");
   const fields = form.watch("fields");
+  const watchedContent = form.watch("content");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
@@ -199,11 +236,15 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                   <FormItem>
                     <FormLabel>Prompt Content</FormLabel>
                     <FormControl>
-                      <TemplateTextarea 
-                        field={field} 
-                        isTemplate={isTemplate}
-                        onSelectionChange={handleSelectionChange}
-                      />
+                        <div onContextMenu={handleContextMenu}>
+                            <ContentEditable
+                                ref={editorRef}
+                                html={field.value}
+                                isTemplate={isTemplate}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                            />
+                        </div>
                     </FormControl>
                     <FormDescription>
                       The main body of your prompt. For templates, use double curly braces like {`{{your_field_name}}`}.
@@ -212,20 +253,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                   </FormItem>
                 )}
               />
-              {isTemplate && (
-                <div className="absolute bottom-12 right-2">
-                  <Button 
-                    type="button" 
-                    size="sm"
-                    onClick={handleMakeField}
-                    disabled={!hasSelection}
-                    className="h-7 px-2"
-                  >
-                    <Wand2 className="mr-1.5 h-3.5 w-3.5" />
-                    Make Field
-                  </Button>
-                </div>
-              )}
             </div>
             <FormField
               control={form.control}
@@ -338,12 +365,19 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
         </Form>
       </CardContent>
     </Card>
+    {isTemplate && (
+        <Menu id={CONTEXT_MENU_ID}>
+            <Item onClick={handleMakeFieldClick}>
+                Create Field from Selection
+            </Item>
+        </Menu>
+    )}
     <CreateFieldDialog 
         isOpen={isFieldDialogOpen} 
         onClose={() => {
             setIsFieldDialogOpen(false);
             setEditingField(null);
-            setSelectionForField(null);
+            setSelection(null);
         }}
         onAddField={handleAddField}
         existingField={editingField}
@@ -351,5 +385,3 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
-
-    
