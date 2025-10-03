@@ -43,7 +43,7 @@ export function UserProfile() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-auto px-2 space-x-2">
+        <Button variant="ghost" className="relative h-8 w-auto px-2 space-x-2 hover:bg-transparent">
            <Avatar className="h-8 w-8">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
             <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback>
