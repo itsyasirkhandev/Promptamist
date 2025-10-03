@@ -270,16 +270,16 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     }
 
   const renderDesktopLayout = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
-        <ScrollArea className="h-full">
-            <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
-                <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
-            </div>
-        </ScrollArea>
-        <div className="h-full p-6 pl-0 flex flex-col">
-            <LivePreview control={form.control} template={prompt.content} />
+    <div className="grid flex-1 grid-cols-1 gap-6 overflow-hidden md:grid-cols-2">
+      <ScrollArea className="h-full">
+        <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
+            <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
         </div>
+      </ScrollArea>
+      <div className="relative flex h-full flex-col p-6 pl-0">
+        <LivePreview control={form.control} template={prompt.content} />
+      </div>
     </div>
   );
 
@@ -339,3 +339,5 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     </>
   );
 }
+
+    
