@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/sidebar';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { AuthStateGate } from '@/components/auth/AuthStateGate';
+import { ThemeToggle } from './ThemeToggle';
+import { Separator } from './ui/separator';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -45,7 +47,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>{/* Navigation items can go here */}</SidebarContent>
         <SidebarFooter>
-          <UserProfile />
+          <div className="flex items-center gap-2">
+            <UserProfile />
+            <ThemeToggle />
+          </div>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
