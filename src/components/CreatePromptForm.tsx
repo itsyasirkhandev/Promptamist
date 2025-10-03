@@ -333,15 +333,14 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                         </div>
                     </FormControl>
                     <FormDescription>
-                      {isTemplate && !isMobile && "For templates, right-click selected text to create a field."}
-                      {isTemplate && isMobile && "For templates, select text and use the button below to create a field."}
+                      {isTemplate && "Select text and use the button below or right-click to create a field."}
                       {!isTemplate && "The main body of your prompt."}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               {isTemplate && isMobile && (
+               {isTemplate && (
                 <div className="absolute bottom-12 right-2">
                     <Button type="button" size="icon" onClick={handleMobileMakeFieldClick} className="rounded-full shadow-lg h-12 w-12">
                         <Wand2 className="h-5 w-5" />
@@ -509,6 +508,8 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   );
 }
 
+
+    
 
     
 
