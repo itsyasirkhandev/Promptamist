@@ -27,26 +27,37 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
     if (selectionStart !== selectionEnd) {
       setSelection({ start: selectionStart, end: selectionEnd });
       
-      // Calculate button position
       const text = textarea.value.substring(0, selectionStart);
-      const lines = text.split('\n');
-      const lineIndex = lines.length - 1;
-      const charIndex = lines[lineIndex].length;
+      const preSelectionText = textarea.value.substring(0, selectionStart);
+      const selectionText = textarea.value.substring(selectionStart, selectionEnd);
+
+      const tempDiv = document.createElement('div');
+      tempDiv.style.font = getComputedStyle(textarea).font;
+      tempDiv.style.visibility = 'hidden';
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.whiteSpace = 'pre-wrap';
+      tempDiv.style.width = `${textarea.clientWidth}px`;
       
-      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight);
-      const top = (lineIndex * lineHeight) - textarea.scrollTop + 5;
+      const preSpan = document.createElement('span');
+      preSpan.textContent = preSelectionText;
+      
+      const selSpan = document.createElement('span');
+      selSpan.textContent = selectionText;
 
-      // This is an approximation
-      const span = document.createElement('span');
-      span.style.font = getComputedStyle(textarea).font;
-      span.style.visibility = 'hidden';
-      span.style.position = 'absolute';
-      span.innerText = lines[lineIndex].substring(0, charIndex);
-      document.body.appendChild(span);
-      const left = span.offsetWidth - textarea.scrollLeft + 10;
-      document.body.removeChild(span);
+      tempDiv.appendChild(preSpan);
+      tempDiv.appendChild(selSpan);
+      
+      document.body.appendChild(tempDiv);
+      
+      const rect = selSpan.getBoundingClientRect();
+      const textareaRect = textarea.getBoundingClientRect();
 
-      setButtonPosition({ top, left: Math.max(left, 10) });
+      document.body.removeChild(tempDiv);
+      
+      const top = rect.top - textareaRect.top - textarea.scrollTop;
+      const left = rect.left - textareaRect.left - textarea.scrollLeft;
+
+      setButtonPosition({ top: top - 32, left });
 
     } else {
       setSelection(null);
@@ -65,7 +76,6 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
 
   const highlightedContent = useMemo(() => {
     if (!isTemplate) return field.value;
-    // This regex will find all instances of {{...}}
     const regex = /{{(.*?)}}/g;
     return field.value.replace(regex, `<span class="bg-primary/20 rounded-sm px-1 text-primary font-medium">${'$&'}</span>`);
   }, [field.value, isTemplate]);
@@ -75,6 +85,8 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
       backdropRef.current.scrollTop = textareaRef.current.scrollTop;
       backdropRef.current.scrollLeft = textareaRef.current.scrollLeft;
     }
+    // Recalculate button position on scroll
+    handleSelect();
   };
   
   return (
@@ -82,7 +94,7 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
       {isTemplate && (
          <div
             ref={backdropRef}
-            className="absolute inset-0 p-2 overflow-hidden pointer-events-none text-base md:text-sm whitespace-pre-wrap"
+            className="absolute inset-0 p-2 overflow-hidden pointer-events-none text-base md:text-sm whitespace-pre-wrap font-mono leading-relaxed tracking-wide"
             dangerouslySetInnerHTML={{ __html: highlightedContent + '\n' }} // Add newline to ensure scroll height matches
          />
       )}
@@ -92,18 +104,21 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
         onSelect={handleSelect}
         onScroll={handleScroll}
         placeholder="e.g., 'Generate 5 blog post ideas about {{topic}}. The ideas should be engaging and SEO-friendly...'"
-        className={`min-h-[150px] ${isTemplate ? 'bg-transparent text-transparent caret-foreground' : ''}`}
+        className={cn(
+          'min-h-[150px] font-mono leading-relaxed tracking-wide',
+          isTemplate ? 'bg-transparent text-transparent caret-foreground selection:bg-blue-300/30' : ''
+        )}
       />
       {buttonPosition && (
         <Button
           type="button"
           size="sm"
-          className="absolute"
+          className="absolute h-7 px-2"
           style={{ top: `${buttonPosition.top}px`, left: `${buttonPosition.left}px` }}
           onClick={handleMakeFieldClick}
           onMouseDown={(e) => e.preventDefault()} // Prevents textarea from losing focus
         >
-          <Wand2 className="mr-2 h-4 w-4" />
+          <Wand2 className="mr-1.5 h-3.5 w-3.5" />
           Make Field
         </Button>
       )}
