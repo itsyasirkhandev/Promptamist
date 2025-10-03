@@ -127,10 +127,11 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     form.setValue("fields", currentFields.filter(f => f.id !== fieldId));
   };
 
-  const handleMakeField = (selection: string) => {
-    setSelectionForField(selection);
-    setEditingField({ id: '', name: selection, type: 'text' });
-    setIsFieldDialogOpen(true);
+  const handleMakeField = () => {
+    if (selectionForField) {
+        setEditingField({ id: '', name: selectionForField, type: 'text' });
+        setIsFieldDialogOpen(true);
+    }
   };
 
   const handleSelectionChange = (hasSelection: boolean, selectionText: string) => {
@@ -219,7 +220,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                   <Button 
                     type="button" 
                     size="sm"
-                    onClick={() => selectionForField && handleMakeField(selectionForField)}
+                    onClick={handleMakeField}
                     disabled={!hasSelection}
                     className="h-7 px-2"
                   >
