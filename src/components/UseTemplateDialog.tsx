@@ -5,7 +5,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useForm, FormProvider, useWatch, Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,11 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 import { Prompt, PromptField } from '@/lib/types';
-import { Copy, Check, Wand2, Save } from 'lucide-react';
+import { Copy, Check, Wand2, Save, PlusCircle, X } from 'lucide-react';
 import { usePrompts } from '@/hooks/use-prompts';
 import { Badge } from './ui/badge';
 import { Label } from './ui/label';
-import { PlusCircle, X } from 'lucide-react';
 import { Separator } from './ui/separator';
 
 
