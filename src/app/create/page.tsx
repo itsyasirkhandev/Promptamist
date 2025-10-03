@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function CreatePromptPage() {
   return (
-    <div className="container mx-auto max-w-2xl py-8">
+    <div className="container mx-auto max-w-2xl">
       <div className="space-y-2">
         <h1 className="font-headline text-3xl font-bold tracking-tight">Create a New Prompt</h1>
         <p className="text-muted-foreground">

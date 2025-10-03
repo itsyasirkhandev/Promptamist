@@ -7,6 +7,15 @@ import { Bot } from "lucide-react";
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { AuthStateGate } from '@/components/auth/AuthStateGate';
 import { UserProfile } from '@/components/auth/UserProfile';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 
 
 export const metadata: Metadata = {
@@ -31,22 +40,35 @@ export default function RootLayout({
       </head>
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
         <FirebaseClientProvider>
-          <div className="flex flex-col min-h-screen">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="container flex h-14 items-center">
-                <Link href="/" className="flex items-center space-x-2">
+          <SidebarProvider>
+            <Sidebar>
+              <SidebarHeader>
+                 <Link href="/" className="flex items-center space-x-2 p-2">
                   <Bot className="h-6 w-6 text-primary" />
                   <span className="font-bold inline-block">PromptCraft</span>
                 </Link>
-                <div className="ml-auto">
-                  <UserProfile />
+              </SidebarHeader>
+              <SidebarContent>
+                {/* Navigation items can go here */}
+              </SidebarContent>
+              <SidebarFooter>
+                <UserProfile />
+              </SidebarFooter>
+            </Sidebar>
+            <SidebarInset>
+              <div className="p-4 sm:p-6 md:p-8">
+                 <div className="flex items-center gap-2 mb-4">
+                  <SidebarTrigger />
+                  <h1 className="font-headline text-2xl font-bold tracking-tight hidden md:block">
+                    {/* Placeholder for page title */}
+                  </h1>
                 </div>
+                <main>
+                  <AuthStateGate>{children}</AuthStateGate>
+                </main>
               </div>
-            </header>
-            <main className="flex-1">
-              <AuthStateGate>{children}</AuthStateGate>
-            </main>
-          </div>
+            </SidebarInset>
+          </SidebarProvider>
           <Toaster />
         </FirebaseClientProvider>
       </body>

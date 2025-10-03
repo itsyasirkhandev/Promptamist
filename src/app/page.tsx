@@ -35,7 +35,7 @@ export default function Home() {
   };
 
   const renderSkeletons = () => (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
         <Card key={i}>
           <CardHeader>
@@ -84,7 +84,7 @@ export default function Home() {
   );
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-headline text-3xl font-bold tracking-tight">
@@ -136,7 +136,7 @@ export default function Home() {
       ) : prompts.length === 0 ? (
         renderEmptyState()
       ) : filteredPrompts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredPrompts.map((prompt) => (
             <PromptCard key={prompt.id} prompt={prompt} />
           ))}
