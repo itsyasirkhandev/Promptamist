@@ -47,7 +47,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>{/* Navigation items can go here */}</SidebarContent>
         <SidebarFooter>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full">
             <UserProfile />
             <ThemeToggle />
           </div>

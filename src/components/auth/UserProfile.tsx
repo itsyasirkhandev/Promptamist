@@ -48,7 +48,7 @@ export function UserProfile() {
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
             <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback>
           </Avatar>
-          <div className="hidden flex-col items-start group-data-[collapsible=offcanvas]:hidden group-data-[collapsible=icon]:hidden sm:flex">
+          <div className="flex flex-col items-start group-data-[collapsible=offcanvas]:hidden group-data-[collapsible=icon]:hidden">
             <span className="text-xs font-semibold text-foreground">{user.displayName || 'User'}</span>
             <span className="text-xs text-muted-foreground">{user.email}</span>
           </div>
