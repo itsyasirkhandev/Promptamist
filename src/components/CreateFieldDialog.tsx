@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -78,6 +78,9 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{existingField && existingField.id ? 'Edit Field' : 'Create New Field'}</DialogTitle>
+          <DialogDescription>
+            {existingField && existingField.id ? "Edit the details of your template field." : "Define a new dynamic part of your template."}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -157,5 +160,3 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
     </Dialog>
   );
 }
-
-    

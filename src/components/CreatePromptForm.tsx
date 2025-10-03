@@ -30,6 +30,8 @@ import { Separator } from "@/components/ui/separator";
 import type { Prompt, PromptField } from "@/lib/types";
 import { CreateFieldDialog } from "./CreateFieldDialog";
 import { ContentEditable } from "./ContentEditable";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title is too long."),
@@ -109,36 +111,51 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       const updatedFields = [...currentFields];
       updatedFields[existingFieldIndex] = field;
       form.setValue("fields", updatedFields);
+
+      if (editingField && editingField.name !== field.name) {
+        const oldPlaceholder = `{{${editingField.name}}}`;
+        const newPlaceholder = `{{${field.name}}}`;
+        const currentContent = form.getValues('content');
+        form.setValue('content', currentContent.replace(new RegExp(oldPlaceholder, 'g'), newPlaceholder));
+      }
+
     } else {
       // Add new field
+       if (currentFields.some(f => f.name === field.name)) {
+            toast({
+                variant: 'destructive',
+                title: 'Field already exists',
+                description: `A field with the name "${field.name}" already exists in this template.`,
+            });
+            return;
+        }
       form.setValue("fields", [...currentFields, field]);
+       // Insert placeholder at selection
+        if (selection) {
+            const fieldPlaceholder = `{{${field.name}}}`;
+            const sel = window.getSelection();
+            if (sel) {
+                sel.removeAllRanges();
+                sel.addRange(selection);
+                
+                selection.deleteContents();
+                const textNode = document.createTextNode(fieldPlaceholder);
+                selection.insertNode(textNode);
+                
+                // Move cursor after inserted text
+                const newRange = document.createRange();
+                newRange.setStartAfter(textNode);
+                newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+
+                if (editorRef.current) {
+                    form.setValue('content', editorRef.current.innerText, { shouldValidate: true, shouldDirty: true });
+                }
+            }
+        }
     }
     
-    // Insert placeholder at selection
-    if (selection) {
-      const fieldPlaceholder = `{{${field.name}}}`;
-      const sel = window.getSelection();
-      if (sel) {
-          sel.removeAllRanges();
-          sel.addRange(selection);
-          
-          selection.deleteContents();
-          const textNode = document.createTextNode(fieldPlaceholder);
-          selection.insertNode(textNode);
-          
-          // Move cursor after inserted text
-          const newRange = document.createRange();
-          newRange.setStartAfter(textNode);
-          newRange.collapse(true);
-          sel.removeAllRanges();
-          sel.addRange(newRange);
-
-          if (editorRef.current) {
-            form.setValue('content', editorRef.current.innerText, { shouldValidate: true, shouldDirty: true });
-          }
-      }
-    }
-
     setEditingField(null);
     setSelection(null);
     setIsFieldDialogOpen(false);
@@ -149,9 +166,13 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     setIsFieldDialogOpen(true);
   };
 
-  const removeField = (fieldId: string) => {
+  const removeField = (fieldToRemove: PromptField) => {
     const currentFields = form.getValues("fields");
-    form.setValue("fields", currentFields.filter(f => f.id !== fieldId));
+    form.setValue("fields", currentFields.filter(f => f.id !== fieldToRemove.id));
+
+    const placeholder = `{{${fieldToRemove.name}}}`;
+    const currentContent = form.getValues('content');
+    form.setValue('content', currentContent.replace(new RegExp(placeholder, 'g'), ''));
   };
   
   const handleContextMenu = (event: React.MouseEvent) => {
@@ -171,14 +192,17 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const handleMakeFieldClick = () => {
     if (selection) {
       const selectedText = selection.toString().trim();
-      setEditingField({ id: '', name: selectedText, type: 'text' });
+      if (selectedText) {
+          setEditingField({ id: '', name: selectedText, type: 'text' });
+      } else {
+          setEditingField(null);
+      }
       setIsFieldDialogOpen(true);
     }
   };
 
   const isTemplate = form.watch("isTemplate");
   const fields = form.watch("fields");
-  const watchedContent = form.watch("content");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
@@ -202,6 +226,11 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
 
     router.push("/");
   }
+  
+  const handleCancelEdit = () => {
+    setEditingField(null);
+  };
+
 
   return (
     <>
@@ -247,7 +276,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                         </div>
                     </FormControl>
                     <FormDescription>
-                      The main body of your prompt. For templates, use double curly braces like {`{{your_field_name}}`}.
+                      The main body of your prompt. For templates, right-click selected text to create a field.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -329,19 +358,46 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                     {fields.length > 0 ? (
                       <div className="space-y-2">
                         {fields.map((field) => (
-                          <div key={field.id} className="flex items-center justify-between rounded-md border p-3">
-                            <div>
-                              <p className="font-semibold">{field.name}</p>
-                              <p className="text-sm text-muted-foreground">Type: {field.type}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="icon" type="button" onClick={() => handleEditField(field)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
+                          <div key={field.id} className="rounded-md border p-3">
+                             {editingField?.id === field.id ? (
+                                <div className="space-y-3">
+                                    <Input 
+                                      defaultValue={field.name} 
+                                      onChange={(e) => setEditingField({...editingField, name: e.target.value})}
+                                    />
+                                    <Select 
+                                      defaultValue={field.type}
+                                      onValueChange={(value) => setEditingField({...editingField, type: value as any})}
+                                    >
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="text">Text</SelectItem>
+                                            <SelectItem value="textarea">Textarea</SelectItem>
+                                            <SelectItem value="number">Number</SelectItem>
+                                            <SelectItem value="choices">Choices</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <div className="flex justify-end gap-2">
+                                        <Button type="button" variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4" /></Button>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => { handleAddField(editingField); }}><Check className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                             ) : (
+                               <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="font-semibold">{field.name}</p>
+                                    <p className="text-sm text-muted-foreground">Type: {field.type}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button variant="ghost" size="icon" type="button" onClick={() => setEditingField(field)}>
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field)}>
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                </div>
+                             )}
                           </div>
                         ))}
                       </div>
