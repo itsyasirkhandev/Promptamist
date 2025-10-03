@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 import { Prompt, PromptField } from '@/lib/types';
-import { Copy, Check, Wand2, Save } from 'lucide-react';
+import { Copy, Check, Wand2, Save, ClipboardPaste } from 'lucide-react';
 import { SavePromptDialog } from './SavePromptDialog';
 
 
@@ -155,6 +155,16 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     defaultValues,
     mode: 'onChange'
   });
+  
+  const handlePaste = async (fieldName: string) => {
+    try {
+        const text = await navigator.clipboard.readText();
+        form.setValue(fieldName, text, { shouldValidate: true, shouldDirty: true });
+    } catch (err) {
+        console.error('Failed to read clipboard contents: ', err);
+    }
+  };
+
 
   const handleSaveClick = () => {
     const formValues = form.getValues();
@@ -214,24 +224,37 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
                         name={field.name}
                         render={({ field: formField }) => (
                             <FormItem>
-                            <FormLabel>{field.name}</FormLabel>
-                            <FormControl>
-                                {field.type === 'textarea' ? (
-                                    <Textarea {...formField} value={formField.value ?? ''} />
-                                ) : field.type === 'choices' && field.options ? (
-                                    <Select onValueChange={formField.onChange} defaultValue={formField.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={`Select ${field.name}`} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    <Input type={field.type} {...formField} value={formField.value ?? ''} />
-                                )}
-                            </FormControl>
-                            <FormMessage />
+                                <FormLabel>{field.name}</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                    {field.type === 'textarea' ? (
+                                        <Textarea {...formField} value={formField.value ?? ''} className="pr-10" />
+                                    ) : field.type === 'choices' && field.options ? (
+                                        <Select onValueChange={formField.onChange} defaultValue={formField.value}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={`Select ${field.name}`} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-10" />
+                                    )}
+                                    {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                                            onClick={() => handlePaste(field.name)}
+                                        >
+                                            <ClipboardPaste className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                         />
