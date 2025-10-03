@@ -8,15 +8,6 @@ import { Bot } from "lucide-react";
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { AuthStateGate } from '@/components/auth/AuthStateGate';
 import { UserProfile } from '@/components/auth/UserProfile';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { AppLayout } from '@/components/AppLayout';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
