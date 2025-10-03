@@ -16,6 +16,8 @@ import { ScrollArea } from './ui/scroll-area';
 import { Prompt, PromptField } from '@/lib/types';
 import { Copy, Check, Wand2, Save, ClipboardPaste } from 'lucide-react';
 import { SavePromptDialog } from './SavePromptDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 function generateSchemaAndDefaults(fields: PromptField[]) {
@@ -136,6 +138,67 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
     )
 }
 
+function TemplateFields({ control, prompt, form, onPaste }: { control: Control<any>, prompt: Prompt, form: any, onPaste: (fieldName: string) => void }) {
+    return (
+        <Form {...form}>
+            <form className="space-y-4" key={prompt.id}>
+                {(prompt.fields || []).map((field) => (
+                    <FormField
+                        key={field.id}
+                        control={control}
+                        name={field.name}
+                        render={({ field: formField }) => (
+                            <FormItem>
+                                <FormLabel>{field.name}</FormLabel>
+                                <FormControl>
+                                    <div className="relative">
+                                    {field.type === 'textarea' ? (
+                                        <>
+                                            <Textarea {...formField} value={formField.value ?? ''} className="pr-20" maxLength={3000}/>
+                                            <div className="absolute bottom-2 right-12 text-xs text-muted-foreground">
+                                                {(formField.value ?? '').length}/3000
+                                            </div>
+                                        </>
+                                    ) : field.type === 'choices' && field.options ? (
+                                        <Select onValueChange={formField.onChange} defaultValue={formField.value}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={`Select ${field.name}`} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <>
+                                            <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-20" maxLength={100} />
+                                            <div className="absolute bottom-0 right-12 flex h-full items-center text-xs text-muted-foreground">
+                                                {(formField.value ?? '').length}/100
+                                            </div>
+                                        </>
+                                    )}
+                                    {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                                            onClick={() => onPaste(field.name)}
+                                        >
+                                            <ClipboardPaste className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                    </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                ))}
+            </form>
+        </Form>
+    );
+}
+
 type UseTemplateDialogProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -146,6 +209,7 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     const hasFields = useMemo(() => prompt.fields && prompt.fields.length > 0, [prompt.fields]);
     const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
     const [generatedPrompt, setGeneratedPrompt] = useState('');
+    const isMobile = useIsMobile();
 
 
   const { dynamicSchema, defaultValues } = useMemo(() => {
@@ -205,6 +269,45 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
         );
     }
 
+  const renderDesktopLayout = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
+        <ScrollArea className="h-full">
+            <div className="px-6 py-4">
+                <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
+                <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
+            </div>
+        </ScrollArea>
+        <div className="h-full py-4 pr-6">
+            <div className="h-full">
+                <LivePreview control={form.control} template={prompt.content} />
+            </div>
+        </div>
+    </div>
+  );
+
+  const renderMobileLayout = () => (
+    <Tabs defaultValue="fields" className="flex-1 min-h-0 flex flex-col">
+      <div className="px-6">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="fields">Fields</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+        </TabsList>
+      </div>
+      <TabsContent value="fields" className="flex-1 min-h-0">
+        <ScrollArea className="h-full">
+            <div className="px-6 py-4">
+                <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
+            </div>
+        </ScrollArea>
+      </TabsContent>
+      <TabsContent value="preview" className="flex-1 min-h-0">
+        <div className="h-full px-6 py-4">
+            <LivePreview control={form.control} template={prompt.content} />
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -213,74 +316,9 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
           <DialogTitle>Use Template: {prompt.title}</DialogTitle>
           <DialogDescription>Fill in the fields to generate a new prompt from this template.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
-          <ScrollArea className="h-full">
-            <div className="px-6 py-4">
-                <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
-                <Form {...form}>
-                  <form className="space-y-4" key={prompt.id}>
-                  {(prompt.fields || []).map((field) => (
-                      <FormField
-                      key={field.id}
-                      control={form.control}
-                      name={field.name}
-                      render={({ field: formField }) => (
-                          <FormItem>
-                              <FormLabel>{field.name}</FormLabel>
-                              <FormControl>
-                                  <div className="relative">
-                                  {field.type === 'textarea' ? (
-                                      <>
-                                          <Textarea {...formField} value={formField.value ?? ''} className="pr-20" maxLength={3000}/>
-                                          <div className="absolute bottom-2 right-12 text-xs text-muted-foreground">
-                                              {(formField.value ?? '').length}/3000
-                                          </div>
-                                      </>
-                                  ) : field.type === 'choices' && field.options ? (
-                                      <Select onValueChange={formField.onChange} defaultValue={formField.value}>
-                                          <SelectTrigger>
-                                              <SelectValue placeholder={`Select ${field.name}`} />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                              {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                                          </SelectContent>
-                                      </Select>
-                                  ) : (
-                                      <>
-                                          <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-20" maxLength={100} />
-                                          <div className="absolute bottom-0 right-12 flex h-full items-center text-xs text-muted-foreground">
-                                              {(formField.value ?? '').length}/100
-                                          </div>
-                                      </>
-                                  )}
-                                  {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
-                                      <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="icon"
-                                          className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
-                                          onClick={() => handlePaste(field.name)}
-                                      >
-                                          <ClipboardPaste className="h-4 w-4" />
-                                      </Button>
-                                  )}
-                                  </div>
-                              </FormControl>
-                              <FormMessage />
-                          </FormItem>
-                      )}
-                      />
-                  ))}
-                  </form>
-                </Form>
-            </div>
-          </ScrollArea>
-          <div className="h-full py-4 pr-6">
-             <div className="h-full">
-                <LivePreview control={form.control} template={prompt.content} />
-            </div>
-          </div>
-        </div>
+        
+        {isMobile ? renderMobileLayout() : renderDesktopLayout()}
+
          <DialogFooter className="flex-shrink-0 p-6 pt-4 border-t">
             <Button onClick={handleSaveClick} disabled={!form.formState.isValid}>
                 <Save className="mr-2 h-4 w-4" />
