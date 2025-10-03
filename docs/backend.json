@@ -25,6 +25,38 @@
                 }
             },
             "required": ["uid", "email"]
+        },
+        "Prompt": {
+            "title": "Prompt",
+            "description": "An AI prompt created by a user.",
+            "type": "object",
+            "properties": {
+                "userId": {
+                    "type": "string",
+                    "description": "The ID of the user who created the prompt."
+                },
+                "title": {
+                    "type": "string",
+                    "description": "The title of the prompt."
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The content of the prompt."
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A list of tags for the prompt."
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The timestamp when the prompt was created."
+                }
+            },
+            "required": ["userId", "title", "content", "createdAt"]
         }
     },
     "auth": {
@@ -36,6 +68,12 @@
                 "$ref": "#/entities/User"
             },
             "description": "Stores user profile information."
+        },
+        "/prompts/{promptId}": {
+            "schema": {
+                "$ref": "#/entities/Prompt"
+            },
+            "description": "Stores AI prompts created by users."
         }
     }
 }

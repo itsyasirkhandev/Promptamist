@@ -1,0 +1,78 @@
+/**
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model.  Users can only
+ * create, read, update, and delete their own data.  No cross-user access
+ * is permitted except where explicitly allowed.  Schema validation is not enforced in this prototype to allow rapid iteration
+ *
+ * Data Structure:
+ * All user data is stored under the `/users/{userId}` path.
+ *
+ * Key Security Decisions:
+ * - Users can only access their own profile data.
+ * - Listing all users is disallowed for privacy reasons.
+ *
+ * Denormalization for Authorization:
+ * - The `uid` is duplicated in the document as well as the path to ensure
+ *   consistency and prevent unauthorized data modification.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Checks if the user is signed in.
+     * @return {boolean} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user's UID matches the provided userId.
+     * @param {string} userId - The user ID to compare against.
+     * @return {boolean} True if the user is the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the authenticated user is the owner of the existing document.
+     * @param {string} userId - The user ID to compare against.
+     * @return {boolean} True if the user is the owner, false otherwise.
+     */
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) - User with UID 'user123' can create their profile at /users/user123.
+     * @allow (get) - User with UID 'user456' can read their profile at /users/user456.
+     * @allow (update) - User with UID 'user789' can update their profile at /users/user789.
+     * @allow (delete) - User with UID 'user101' can delete their profile at /users/user101.
+     * @deny (create) - User with UID 'user123' cannot create a profile at /users/user456 (mismatched UID).
+     * @deny (get) - User with UID 'user456' cannot read the profile at /users/user789 (mismatched UID).
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree. Validates relational integrity between documents.
+     */
+    match /users/{userId} {
+      // Only allow authenticated users to create their own user document.
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.uid == userId;
+
+      // Only allow the user to read their own user document.
+      allow get: if isSignedIn() && isOwner(userId);
+
+      // Prevent listing of all users.
+      allow list: if false;
+
+      // Only allow the user to update their own user document. The `uid` field is immutable.
+      allow update: if isExistingOwner(userId) && request.resource.data.uid == resource.data.uid;
+
+      // Only allow the user to delete their own user document.
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}

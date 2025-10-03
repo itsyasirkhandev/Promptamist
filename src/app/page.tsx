@@ -17,6 +17,7 @@ export default function Home() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const filteredPrompts = useMemo(() => {
+    if (!isLoaded) return [];
     return prompts.filter((prompt) => {
       const matchesSearch =
         prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,7 +25,7 @@ export default function Home() {
       const matchesTag = selectedTag ? prompt.tags.includes(selectedTag) : true;
       return matchesSearch && matchesTag;
     });
-  }, [prompts, searchTerm, selectedTag]);
+  }, [prompts, searchTerm, selectedTag, isLoaded]);
 
   const handleTagClick = (tag: string) => {
     if (selectedTag === tag) {
@@ -39,8 +40,13 @@ export default function Home() {
       {Array.from({ length: 6 }).map((_, i) => (
         <Card key={i}>
           <CardHeader>
-            <Skeleton className="mb-2 h-6 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
+            <div className="flex justify-between items-start">
+                <div>
+                    <Skeleton className="mb-2 h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </div>
+                <Skeleton className="h-8 w-8" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">

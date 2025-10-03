@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePrompts } from "@/hooks/use-prompts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import type { Prompt } from "@/lib/types";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title is too long."),
@@ -30,10 +31,15 @@ const formSchema = z.object({
   tags: z.array(z.string().min(1, "Tag cannot be empty.")).max(10, "You can add up to 10 tags.").optional().default([]),
 });
 
-export function CreatePromptForm() {
+type PromptFormProps = {
+    prompt?: Prompt;
+    isEditing?: boolean;
+};
+
+export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const { addPrompt } = usePrompts();
+  const { addPrompt, updatePrompt } = usePrompts();
   const [tagInput, setTagInput] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,6 +50,16 @@ export function CreatePromptForm() {
       tags: [],
     },
   });
+
+  useEffect(() => {
+    if (isEditing && prompt) {
+        form.reset({
+            title: prompt.title,
+            content: prompt.content,
+            tags: prompt.tags,
+        });
+    }
+  }, [isEditing, prompt, form]);
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -66,16 +82,24 @@ export function CreatePromptForm() {
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    addPrompt({
-      title: values.title,
-      content: values.content,
-      tags: values.tags || [],
-    });
+    if (isEditing && prompt) {
+        updatePrompt(prompt.id, values);
+        toast({
+            title: "Prompt Updated!",
+            description: "Your prompt has been successfully updated.",
+        });
+    } else {
+        addPrompt({
+            title: values.title,
+            content: values.content,
+            tags: values.tags || [],
+        });
 
-    toast({
-      title: "Prompt Created!",
-      description: "Your new prompt has been saved to your library.",
-    });
+        toast({
+            title: "Prompt Created!",
+            description: "Your new prompt has been saved to your library.",
+        });
+    }
 
     router.push("/");
   }
@@ -164,7 +188,7 @@ export function CreatePromptForm() {
             />
             <Button type="submit" className="w-full sm:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Save Prompt
+              {isEditing ? 'Save Changes' : 'Save Prompt'}
             </Button>
           </form>
         </Form>

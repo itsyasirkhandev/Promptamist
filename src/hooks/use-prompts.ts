@@ -2,49 +2,111 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Prompt } from '@/lib/types';
-
-const PROMPTS_STORAGE_KEY = 'promptcraft-prompts';
+import { useAuth, useFirestore, useUser } from '@/firebase';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export function usePrompts() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const firestore = useFirestore();
+  const { user } = useUser();
 
   useEffect(() => {
-    try {
-      const storedPrompts = localStorage.getItem(PROMPTS_STORAGE_KEY);
-      if (storedPrompts) {
-        setPrompts(JSON.parse(storedPrompts));
+    if (!firestore || !user) {
+      setPrompts([]);
+      setIsLoaded(!!user);
+      return;
+    }
+
+    setIsLoaded(false);
+    const promptsRef = collection(firestore, 'prompts');
+    const q = query(
+      promptsRef,
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const newPrompts = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        } as Prompt));
+        setPrompts(newPrompts);
+        setIsLoaded(true);
+      },
+      (err) => {
+        errorEmitter.emit(
+          'permission-error',
+          new FirestorePermissionError({
+            path: q.toString(),
+            operation: 'list',
+          })
+        );
+        console.error("Error fetching prompts:", err);
+        setIsLoaded(true);
       }
-    } catch (error) {
-      console.error("Failed to load prompts from localStorage", error);
-    }
-    setIsLoaded(true);
-  }, []);
+    );
 
-  const savePrompts = useCallback((newPrompts: Prompt[]) => {
-    try {
-      // Sort prompts by creation date, newest first
-      const sortedPrompts = newPrompts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      setPrompts(sortedPrompts);
-      localStorage.setItem(PROMPTS_STORAGE_KEY, JSON.stringify(sortedPrompts));
-    } catch (error) {
-      console.error("Failed to save prompts to localStorage", error);
-    }
-  }, []);
+    return () => unsubscribe();
+  }, [firestore, user]);
 
-  const addPrompt = useCallback((prompt: Omit<Prompt, 'id' | 'createdAt'>) => {
-    const newPrompt: Prompt = {
+  const addPrompt = useCallback(async (prompt: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
+    if (!firestore || !user) return;
+    const promptsRef = collection(firestore, 'prompts');
+    const newPrompt = {
       ...prompt,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
+      userId: user.uid,
+      createdAt: serverTimestamp(),
     };
-    // Fetch current prompts from state to avoid stale closure issues
-    setPrompts(currentPrompts => {
-      const updatedPrompts = [newPrompt, ...currentPrompts];
-      savePrompts(updatedPrompts);
-      return updatedPrompts;
-    });
-  }, [savePrompts]);
+    addDoc(promptsRef, newPrompt)
+        .catch((serverError) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: promptsRef.path,
+                operation: 'create',
+                requestResourceData: newPrompt,
+            }));
+        });
+  }, [firestore, user]);
+
+  const updatePrompt = useCallback(async (promptId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) => {
+    if (!firestore) return;
+    const promptRef = doc(firestore, 'prompts', promptId);
+    updateDoc(promptRef, updatedData)
+        .catch((serverError) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: promptRef.path,
+                operation: 'update',
+                requestResourceData: updatedData,
+            }));
+        });
+  }, [firestore]);
+
+  const deletePrompt = useCallback(async (promptId: string) => {
+    if (!firestore) return;
+    const promptRef = doc(firestore, 'prompts', promptId);
+    deleteDoc(promptRef)
+        .catch((serverError) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: promptRef.path,
+                operation: 'delete',
+            }));
+        });
+  }, [firestore]);
 
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>();
@@ -54,6 +116,5 @@ export function usePrompts() {
     return Array.from(tagsSet).sort();
   }, [prompts]);
 
-
-  return { prompts, addPrompt, isLoaded, allTags };
+  return { prompts, addPrompt, updatePrompt, deletePrompt, isLoaded, allTags };
 }
