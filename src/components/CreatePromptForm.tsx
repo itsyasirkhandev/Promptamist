@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2, Check } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2, Check, Wand2 } from "lucide-react";
 import { Menu, Item, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 
@@ -31,6 +31,7 @@ import type { Prompt, PromptField } from "@/lib/types";
 import { CreateFieldDialog } from "./CreateFieldDialog";
 import { ContentEditable } from "./ContentEditable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 const formSchema = z.object({
@@ -57,6 +58,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const [editingField, setEditingField] = useState<PromptField | null>(null);
   const [selection, setSelection] = useState<Range | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const { show } = useContextMenu({ id: CONTEXT_MENU_ID });
 
@@ -213,7 +215,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   };
   
   const handleContextMenu = (event: React.MouseEvent) => {
-    if (form.getValues('isTemplate')) {
+    if (form.getValues('isTemplate') && !isMobile) {
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
@@ -238,6 +240,26 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       setIsFieldDialogOpen(true);
     }
   };
+
+  const handleMobileMakeFieldClick = () => {
+    const sel = window.getSelection();
+    let selectedText = "";
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (editorRef.current?.contains(range.commonAncestorContainer)) {
+        selectedText = range.toString().trim();
+        setSelection(range.cloneRange());
+      }
+    }
+    
+    if (selectedText) {
+      setEditingField({ id: '', name: selectedText, type: 'text' });
+    } else {
+      setEditingField(null);
+    }
+    setIsFieldDialogOpen(true);
+  };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
@@ -311,12 +333,22 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                         </div>
                     </FormControl>
                     <FormDescription>
-                      The main body of your prompt. For templates, right-click selected text to create a field.
+                      {isTemplate && !isMobile && "For templates, right-click selected text to create a field."}
+                      {isTemplate && isMobile && "For templates, select text and use the button below to create a field."}
+                      {!isTemplate && "The main body of your prompt."}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+               {isTemplate && isMobile && (
+                <div className="absolute bottom-12 right-2">
+                    <Button type="button" size="icon" onClick={handleMobileMakeFieldClick} className="rounded-full shadow-lg h-12 w-12">
+                        <Wand2 className="h-5 w-5" />
+                        <span className="sr-only">Create Field from Selection</span>
+                    </Button>
+                </div>
+               )}
             </div>
             <FormField
               control={form.control}
@@ -456,7 +488,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
         </Form>
       </CardContent>
     </Card>
-    {isTemplate && (
+    {isTemplate && !isMobile && (
         <Menu id={CONTEXT_MENU_ID}>
             <Item onClick={handleMakeFieldClick}>
                 Create Field from Selection
@@ -477,5 +509,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   );
 }
 
+
+    
 
     
