@@ -35,9 +35,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 
 const formSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title is too long."),
-  content: z.string().min(10, "Prompt content must be at least 10 characters."),
-  tags: z.array(z.string().min(1, "Tag cannot be empty.")).max(10, "You can add up to 10 tags.").optional().default([]),
+  title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title cannot exceed 100 characters."),
+  content: z.string().min(10, "Prompt content must be at least 10 characters.").max(5000, "Content cannot exceed 5000 characters."),
+  tags: z.array(z.string().min(1, "Tag cannot be empty.").max(30, "Tag cannot exceed 30 characters.")).max(10, "You can add up to 10 tags.").optional().default([]),
   isTemplate: z.boolean().default(false),
   fields: z.array(z.custom<PromptField>()).default([]),
 });
@@ -76,6 +76,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const isTemplate = form.watch("isTemplate");
   const fields = form.watch("fields");
   const watchedContent = form.watch("content");
+  const watchedTitle = form.watch("title");
 
   useEffect(() => {
     if (isEditing && prompt) {
@@ -110,12 +111,18 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       const newTag = tagInput.trim();
-      if (newTag) {
+      if (newTag && newTag.length <= 30) {
         const currentTags = form.getValues("tags") || [];
         if (!currentTags.includes(newTag)) {
           form.setValue("tags", [...currentTags, newTag]);
           setTagInput("");
         }
+      } else if (newTag.length > 30) {
+        toast({
+            variant: 'destructive',
+            title: 'Tag is too long',
+            description: 'A tag cannot exceed 30 characters.'
+        })
       }
     }
   };
@@ -215,7 +222,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   };
   
   const handleContextMenu = (event: React.MouseEvent) => {
-    if (form.getValues('isTemplate') && !isMobile) {
+    if (form.getValues('isTemplate')) {
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
@@ -307,7 +314,12 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     <FormItem>
                                     <FormLabel>Prompt Title</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} />
+                                        <div className="relative">
+                                            <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} maxLength={100} />
+                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                                {field.value.length}/100
+                                            </div>
+                                        </div>
                                     </FormControl>
                                     <FormDescription>
                                         A short, descriptive title for your prompt.
@@ -324,7 +336,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     <FormItem>
                                         <FormLabel>Prompt Content</FormLabel>
                                         <FormControl>
-                                            <div onContextMenu={handleContextMenu}>
+                                            <div onContextMenu={handleContextMenu} className="relative">
                                                 <ContentEditable
                                                     ref={editorRef}
                                                     html={field.value}
@@ -333,6 +345,9 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                                     onChange={(e) => field.onChange(e.target.value)}
                                                     className="min-h-[300px]"
                                                 />
+                                                <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                                    {field.value.length}/5000
+                                                </div>
                                             </div>
                                         </FormControl>
                                         <FormDescription>
@@ -369,30 +384,34 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     <FormItem>
                                     <FormLabel>Tags</FormLabel>
                                     <FormControl>
-                                        <div>
-                                        <Input 
-                                            placeholder="Type a tag and press Enter" 
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={handleTagKeyDown}
-                                        />
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                            {field.value?.map(tag => (
-                                            <Badge key={tag} variant="secondary">
-                                                {tag}
-                                                <button
-                                                type="button"
-                                                className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                                onClick={() => removeTag(tag)}
-                                                >
-                                                <X className="h-3 w-3" />
-                                                <span className="sr-only">Remove {tag}</span>
-                                                </button>
-                                            </Badge>
-                                            ))}
-                                        </div>
+                                        <div className="relative">
+                                            <Input 
+                                                placeholder="Type a tag and press Enter" 
+                                                value={tagInput}
+                                                onChange={(e) => setTagInput(e.target.value)}
+                                                onKeyDown={handleTagKeyDown}
+                                                maxLength={30}
+                                            />
+                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                                {tagInput.length}/30
+                                            </div>
                                         </div>
                                     </FormControl>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {field.value?.map(tag => (
+                                        <Badge key={tag} variant="secondary">
+                                            {tag}
+                                            <button
+                                            type="button"
+                                            className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                            onClick={() => removeTag(tag)}
+                                            >
+                                            <X className="h-3 w-3" />
+                                            <span className="sr-only">Remove {tag}</span>
+                                            </button>
+                                        </Badge>
+                                        ))}
+                                    </div>
                                     <FormDescription>
                                         Press Enter or comma to add a tag. Helps you categorize your prompts.
                                     </FormDescription>
@@ -503,7 +522,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
           </form>
         </Form>
       
-    {isTemplate && !isMobile && (
+    {isTemplate && (
         <Menu id={CONTEXT_MENU_ID}>
             <Item onClick={handleMakeFieldClick}>
                 Create Field from Selection
@@ -523,3 +542,5 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
+
+    

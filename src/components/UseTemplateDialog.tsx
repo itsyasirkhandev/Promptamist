@@ -33,7 +33,7 @@ function generateSchemaAndDefaults(fields: PromptField[]) {
                 schema = z.preprocess(
                     (a) => {
                         if (typeof a === 'string' && a.trim() === '') return undefined;
-                        const parsed = parseFloat(z.string().parse(a));
+                        const parsed = parseFloat(z.string().max(100).parse(a));
                         return isNaN(parsed) ? undefined : parsed;
                     },
                     z.number({ required_error: `${field.name} is required.` })
@@ -46,14 +46,17 @@ function generateSchemaAndDefaults(fields: PromptField[]) {
                     schema = z.enum(options).describe(`${field.name} is required.`);
                     defaults[field.name] = undefined;
                 } else {
-                    schema = z.string().min(1, `${field.name} is required.`);
+                    schema = z.string().min(1, `${field.name} is required.`).max(100);
                     defaults[field.name] = '';
                 }
                 break;
             case 'textarea':
+                schema = z.string().min(1, `${field.name} is required.`).max(3000);
+                defaults[field.name] = '';
+                break;
             case 'text':
             default:
-                schema = z.string().min(1, `${field.name} is required.`);
+                schema = z.string().min(1, `${field.name} is required.`).max(100);
                 defaults[field.name] = '';
                 break;
         }
@@ -206,14 +209,14 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0 p-6 pb-4">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+        <DialogHeader className="flex-shrink-0 p-6 pb-4 border-b">
           <DialogTitle>Use Template: {prompt.title}</DialogTitle>
           <DialogDescription>Fill in the fields to generate a new prompt from this template.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0 px-6">
-          <ScrollArea className="h-full -mx-6 px-6">
-            <div className="pr-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
+          <ScrollArea className="h-full">
+            <div className="px-6 py-4">
                 <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
                 <FormProvider {...form}>
                     <form className="space-y-4" key={prompt.id}>
@@ -228,7 +231,12 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
                                 <FormControl>
                                     <div className="relative">
                                     {field.type === 'textarea' ? (
-                                        <Textarea {...formField} value={formField.value ?? ''} className="pr-10" />
+                                        <>
+                                            <Textarea {...formField} value={formField.value ?? ''} className="pr-10" maxLength={3000}/>
+                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                                {(formField.value ?? '').length}/3000
+                                            </div>
+                                        </>
                                     ) : field.type === 'choices' && field.options ? (
                                         <Select onValueChange={formField.onChange} defaultValue={formField.value}>
                                             <SelectTrigger>
@@ -239,7 +247,12 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
                                             </SelectContent>
                                         </Select>
                                     ) : (
-                                        <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-10" />
+                                        <>
+                                            <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-10" maxLength={100} />
+                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                                {(formField.value ?? '').length}/100
+                                            </div>
+                                        </>
                                     )}
                                     {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
                                         <Button
@@ -263,7 +276,7 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
                 </FormProvider>
             </div>
           </ScrollArea>
-          <div className="h-full py-4">
+          <div className="h-full py-4 pr-6">
              <div className="h-full">
                 <LivePreview control={form.control} template={prompt.content} />
             </div>
@@ -291,3 +304,5 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     </>
   );
 }
+
+    

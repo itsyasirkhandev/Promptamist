@@ -16,7 +16,7 @@ import type { PromptField, PromptFieldType } from "@/lib/types";
 const fieldSchema = z.object({
   name: z.string().min(1, "Field name is required."),
   type: z.enum(["text", "textarea", "number", "choices"]),
-  options: z.array(z.object({ value: z.string().min(1, "Option cannot be empty.") })).optional(),
+  options: z.array(z.object({ value: z.string().min(1, "Option cannot be empty.").max(100, "Option cannot exceed 100 characters.") })).optional(),
 });
 
 interface CreateFieldDialogProps {
@@ -128,14 +128,22 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
                     key={field.id}
                     control={form.control}
                     name={`options.${index}.value`}
-                    render={({ field }) => (
-                        <FormItem className="flex items-center gap-2">
-                            <FormControl>
-                                <Input {...field} placeholder={`Option ${index + 1}`} />
-                            </FormControl>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                    render={({ field: optionField }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                                <FormControl>
+                                    <div className="relative w-full">
+                                        <Input {...optionField} placeholder={`Option ${index + 1}`} maxLength={100} />
+                                        <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                            {optionField.value.length}/100
+                                        </div>
+                                    </div>
+                                </FormControl>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                            </div>
+                             <FormMessage />
                         </FormItem>
                     )}
                   />
@@ -160,3 +168,5 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
     </Dialog>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 {
     "entities": {
         "User": {
@@ -37,18 +38,22 @@
                 },
                 "title": {
                     "type": "string",
-                    "description": "The title of the prompt."
+                    "description": "The title of the prompt.",
+                    "maxLength": 100
                 },
                 "content": {
                     "type": "string",
-                    "description": "The content of the prompt."
+                    "description": "The content of the prompt.",
+                    "maxLength": 5000
                 },
                 "tags": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 30
                     },
-                    "description": "A list of tags for the prompt."
+                    "description": "A list of tags for the prompt.",
+                    "maxItems": 10
                 },
                 "createdAt": {
                     "type": "string",
@@ -77,3 +82,5 @@
         }
     }
 }
+
+    
