@@ -274,7 +274,7 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
         <div className="flex flex-col gap-4 min-h-0">
             <h3 className="text-lg font-semibold flex-shrink-0">Template Fields</h3>
             <ScrollArea className="flex-1">
-                <div className="pr-6">
+                <div className="pr-6 pl-1">
                     <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
                 </div>
             </ScrollArea>
@@ -342,4 +342,3 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
   );
 }
 
-    
