@@ -277,10 +277,8 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
                 <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
             </div>
         </ScrollArea>
-        <div className="h-full py-4 pr-6">
-            <div className="h-full">
-                <LivePreview control={form.control} template={prompt.content} />
-            </div>
+        <div className="h-full py-4 pr-6 flex flex-col">
+            <LivePreview control={form.control} template={prompt.content} />
         </div>
     </div>
   );
