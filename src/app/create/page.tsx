@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function CreatePromptPage() {
   return (
-    <div className="container mx-auto max-w-2xl">
+    <div className="container mx-auto max-w-6xl">
        <div className="mb-8">
         <Button asChild variant="ghost" className="mb-4 pl-0">
             <Link href="/">

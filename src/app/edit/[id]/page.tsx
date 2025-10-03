@@ -19,7 +19,7 @@ export default function EditPromptPage() {
 
   if (!isLoaded) {
     return (
-        <div className="container mx-auto max-w-2xl">
+        <div className="container mx-auto max-w-6xl">
             <Skeleton className="h-8 w-32 mb-4" />
             <Skeleton className="h-10 w-48 mb-2" />
             <Skeleton className="h-6 w-full max-w-md mb-8" />
@@ -44,7 +44,7 @@ export default function EditPromptPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl">
+    <div className="container mx-auto max-w-6xl">
       <div className="mb-8">
         <Button asChild variant="ghost" className="mb-4 pl-0">
           <Link href="/">

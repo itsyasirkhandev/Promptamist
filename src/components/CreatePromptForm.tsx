@@ -291,202 +291,218 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
 
   return (
     <>
-    <Card className="mt-8">
-      <CardHeader>
-        <CardTitle className="font-headline">Prompt Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prompt Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    A short, descriptive title for your prompt.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="relative">
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prompt Content</FormLabel>
-                    <FormControl>
-                        <div onContextMenu={handleContextMenu}>
-                            <ContentEditable
-                                ref={editorRef}
-                                html={field.value}
-                                fields={fields}
-                                isTemplate={isTemplate}
-                                onChange={(e) => field.onChange(e.target.value)}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <div className="md:col-span-2 space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Core Prompt</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-8">
+                            <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Prompt Title</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                        A short, descriptive title for your prompt.
+                                    </FormDescription>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                        </div>
-                    </FormControl>
-                    <FormDescription>
-                      {isTemplate && "Select text and use the button below or right-click to create a field."}
-                      {!isTemplate && "The main body of your prompt."}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               {isTemplate && (
-                <div className="absolute bottom-12 right-2">
-                    <Button type="button" size="icon" onClick={handleMobileMakeFieldClick} className="rounded-full shadow-lg h-12 w-12">
-                        <Wand2 className="h-5 w-5" />
-                        <span className="sr-only">Create Field from Selection</span>
-                    </Button>
-                </div>
-               )}
-            </div>
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <div>
-                      <Input 
-                        placeholder="Type a tag and press Enter" 
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={handleTagKeyDown}
-                      />
-                       <div className="mt-2 flex flex-wrap gap-2">
-                        {field.value?.map(tag => (
-                          <Badge key={tag} variant="secondary">
-                            {tag}
-                            <button
-                              type="button"
-                              className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                              onClick={() => removeTag(tag)}
-                            >
-                              <X className="h-3 w-3" />
-                              <span className="sr-only">Remove {tag}</span>
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </FormControl>
-                  <FormDescription>
-                    Press Enter or comma to add a tag. Helps you categorize your prompts.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Separator />
-            
-            <FormField
-              control={form.control}
-              name="isTemplate"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Enable Templating
-                    </FormLabel>
-                    <FormDescription>
-                      Turn this prompt into a reusable template with dynamic fields.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            
-            {isTemplate && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Template Fields</CardTitle>
-                  <CardDescription>Define the dynamic parts of your prompt.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {fields.length > 0 ? (
-                      <div className="space-y-2">
-                        {fields.map((field) => (
-                          <div key={field.id} className="rounded-md border p-3">
-                             {editingField?.id === field.id ? (
-                                <div className="space-y-3">
-                                    <Input 
-                                      defaultValue={field.name} 
-                                      onChange={(e) => setEditingField(prev => prev ? {...prev, name: e.target.value} : null)}
-                                    />
-                                    <Select 
-                                      defaultValue={field.type}
-                                      onValueChange={(value) => setEditingField(prev => prev ? {...prev, type: value as any} : null)}
-                                    >
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="text">Text</SelectItem>
-                                            <SelectItem value="textarea">Textarea</SelectItem>
-                                            <SelectItem value="number">Number</SelectItem>
-                                            <SelectItem value="choices">Choices</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <div className="flex justify-end gap-2">
-                                        <Button type="button" variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4" /></Button>
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => editingField && handleSaveFieldEdit(editingField)}><Check className="h-4 w-4" /></Button>
+                            <div className="relative">
+                                <FormField
+                                    control={form.control}
+                                    name="content"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Prompt Content</FormLabel>
+                                        <FormControl>
+                                            <div onContextMenu={handleContextMenu}>
+                                                <ContentEditable
+                                                    ref={editorRef}
+                                                    html={field.value}
+                                                    fields={fields}
+                                                    isTemplate={isTemplate}
+                                                    onChange={(e) => field.onChange(e.target.value)}
+                                                    className="min-h-[300px]"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                        <FormDescription>
+                                            {isTemplate && "Select text and use the button below or right-click to create a field."}
+                                            {!isTemplate && "The main body of your prompt."}
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                {isTemplate && (
+                                    <div className="absolute bottom-12 right-2">
+                                        <Button type="button" size="icon" onClick={handleMobileMakeFieldClick} className="rounded-full shadow-lg h-12 w-12">
+                                            <Wand2 className="h-5 w-5" />
+                                            <span className="sr-only">Create Field from Selection</span>
+                                        </Button>
                                     </div>
-                                </div>
-                             ) : (
-                               <div className="flex items-center justify-between">
-                                  <div>
-                                    <p className="font-semibold">{field.name}</p>
-                                    <p className="text-sm text-muted-foreground">Type: {field.type}</p>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" type="button" onClick={() => handleEditFieldClick(field)}>
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field)}>
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </div>
-                             )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center">No template fields added yet.</p>
-                    )}
-                    <Button type="button" variant="outline" onClick={() => { setEditingField(null); setIsFieldDialogOpen(true); }}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Field
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
-            <Button type="submit" className="w-full sm:w-auto">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              {isEditing ? 'Save Changes' : 'Save Prompt'}
-            </Button>
+                <div className="space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Metadata</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <FormField
+                                control={form.control}
+                                name="tags"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Tags</FormLabel>
+                                    <FormControl>
+                                        <div>
+                                        <Input 
+                                            placeholder="Type a tag and press Enter" 
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={handleTagKeyDown}
+                                        />
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {field.value?.map(tag => (
+                                            <Badge key={tag} variant="secondary">
+                                                {tag}
+                                                <button
+                                                type="button"
+                                                className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                                onClick={() => removeTag(tag)}
+                                                >
+                                                <X className="h-3 w-3" />
+                                                <span className="sr-only">Remove {tag}</span>
+                                                </button>
+                                            </Badge>
+                                            ))}
+                                        </div>
+                                        </div>
+                                    </FormControl>
+                                    <FormDescription>
+                                        Press Enter or comma to add a tag. Helps you categorize your prompts.
+                                    </FormDescription>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </Card>
+                    
+                    <FormField
+                        control={form.control}
+                        name="isTemplate"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-base">
+                                Enable Templating
+                                </FormLabel>
+                                <FormDescription>
+                                Turn this prompt into a reusable template with dynamic fields.
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    
+                    {isTemplate && (
+                    <Card>
+                        <CardHeader>
+                        <CardTitle>Template Fields</CardTitle>
+                        <CardDescription>Define the dynamic parts of your prompt.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        <div className="space-y-4">
+                            {fields.length > 0 ? (
+                            <div className="space-y-2">
+                                {fields.map((field) => (
+                                <div key={field.id} className="rounded-md border p-3">
+                                    {editingField?.id === field.id ? (
+                                        <div className="space-y-3">
+                                            <Input 
+                                            defaultValue={field.name} 
+                                            onChange={(e) => setEditingField(prev => prev ? {...prev, name: e.target.value} : null)}
+                                            />
+                                            <Select 
+                                            defaultValue={field.type}
+                                            onValueChange={(value) => setEditingField(prev => prev ? {...prev, type: value as any} : null)}
+                                            >
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="text">Text</SelectItem>
+                                                    <SelectItem value="textarea">Textarea</SelectItem>
+                                                    <SelectItem value="number">Number</SelectItem>
+                                                    <SelectItem value="choices">Choices</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <div className="flex justify-end gap-2">
+                                                <Button type="button" variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4" /></Button>
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => editingField && handleSaveFieldEdit(editingField)}><Check className="h-4 w-4" /></Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-semibold">{field.name}</p>
+                                            <p className="text-sm text-muted-foreground">Type: {field.type}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="icon" type="button" onClick={() => handleEditFieldClick(field)}>
+                                            <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field)}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                        </div>
+                                    )}
+                                </div>
+                                ))}
+                            </div>
+                            ) : (
+                            <p className="text-sm text-muted-foreground text-center">No template fields added yet.</p>
+                            )}
+                            <Button type="button" variant="outline" onClick={() => { setEditingField(null); setIsFieldDialogOpen(true); }}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add Field
+                            </Button>
+                        </div>
+                        </CardContent>
+                    </Card>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex justify-end">
+                <Button type="submit" className="w-full sm:w-auto">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {isEditing ? 'Save Changes' : 'Save Prompt'}
+                </Button>
+            </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      
     {isTemplate && !isMobile && (
         <Menu id={CONTEXT_MENU_ID}>
             <Item onClick={handleMakeFieldClick}>
@@ -507,10 +523,3 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
-
-
-    
-
-    
-
-    
