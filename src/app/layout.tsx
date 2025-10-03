@@ -4,6 +4,10 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import { Bot } from "lucide-react";
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { AuthStateGate } from '@/components/auth/AuthStateGate';
+import { UserProfile } from '@/components/auth/UserProfile';
+
 
 export const metadata: Metadata = {
   title: {
@@ -26,18 +30,25 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&family=Source+Code+Pro&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
-        <div className="flex flex-col min-h-screen">
-          <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-14 items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                <Bot className="h-6 w-6 text-primary" />
-                <span className="font-bold inline-block">PromptCraft</span>
-              </Link>
-            </div>
-          </header>
-          <main className="flex-1">{children}</main>
-        </div>
-        <Toaster />
+        <FirebaseClientProvider>
+          <div className="flex flex-col min-h-screen">
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="container flex h-14 items-center">
+                <Link href="/" className="flex items-center space-x-2">
+                  <Bot className="h-6 w-6 text-primary" />
+                  <span className="font-bold inline-block">PromptCraft</span>
+                </Link>
+                <div className="ml-auto">
+                  <UserProfile />
+                </div>
+              </div>
+            </header>
+            <main className="flex-1">
+              <AuthStateGate>{children}</AuthStateGate>
+            </main>
+          </div>
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );
