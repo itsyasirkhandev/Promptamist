@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useMemo, useEffect } from 'react';
@@ -50,7 +51,7 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
       {isTemplate && (
          <div
             ref={backdropRef}
-            className="absolute inset-0 p-2 overflow-hidden pointer-events-none text-base md:text-sm whitespace-pre-wrap font-mono leading-relaxed tracking-wide"
+            className="absolute inset-0 overflow-auto pointer-events-none whitespace-pre-wrap font-mono leading-relaxed tracking-wide text-transparent border border-transparent rounded-md px-3 py-2 text-base md:text-sm"
             dangerouslySetInnerHTML={{ __html: highlightedContent + '\n' }}
          />
       )}
@@ -61,9 +62,10 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
         placeholder="e.g., 'Generate 5 blog post ideas about {{topic}}. The ideas should be engaging and SEO-friendly...'"
         className={cn(
           'min-h-[150px] font-mono leading-relaxed tracking-wide',
-          isTemplate ? 'bg-transparent text-transparent caret-foreground selection:bg-blue-300/30' : ''
+          isTemplate ? 'bg-transparent text-transparent caret-foreground selection:bg-primary/20 selection:text-transparent' : ''
         )}
       />
     </div>
   );
 }
+
