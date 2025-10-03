@@ -133,8 +133,8 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
                             <div className="flex items-center gap-2">
                                 <FormControl>
                                     <div className="relative w-full">
-                                        <Input {...optionField} placeholder={`Option ${index + 1}`} maxLength={100} />
-                                        <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                        <Input {...optionField} placeholder={`Option ${index + 1}`} maxLength={100} className="pr-20" />
+                                        <div className="absolute bottom-0 right-9 flex h-full items-center text-xs text-muted-foreground">
                                             {optionField.value.length}/100
                                         </div>
                                     </div>

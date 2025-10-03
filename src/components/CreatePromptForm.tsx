@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2, Check, Wand2 } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2, Wand2 } from "lucide-react";
 import { Menu, Item, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 
@@ -26,13 +26,9 @@ import { usePrompts } from "@/hooks/use-prompts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import type { Prompt, PromptField } from "@/lib/types";
 import { CreateFieldDialog } from "./CreateFieldDialog";
 import { ContentEditable } from "./ContentEditable";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { useIsMobile } from "@/hooks/use-mobile";
-
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title cannot exceed 100 characters."),
@@ -58,7 +54,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const [editingField, setEditingField] = useState<PromptField | null>(null);
   const [selection, setSelection] = useState<Range | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
 
   const { show } = useContextMenu({ id: CONTEXT_MENU_ID });
 
@@ -76,7 +71,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const isTemplate = form.watch("isTemplate");
   const fields = form.watch("fields");
   const watchedContent = form.watch("content");
-  const watchedTitle = form.watch("title");
 
   useEffect(() => {
     if (isEditing && prompt) {
@@ -92,7 +86,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
 
   useEffect(() => {
     if (!isTemplate) {
-        // If templating is turned off, clear fields to be safe.
         const currentFields = form.getValues("fields");
         if (currentFields.length > 0) {
             form.setValue('fields', []);
@@ -179,7 +172,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                 const textNode = document.createTextNode(fieldPlaceholder);
                 selection.insertNode(textNode);
                 
-                // Move cursor after inserted text
                 const newRange = document.createRange();
                 newRange.setStartAfter(textNode);
                 newRange.collapse(true);
@@ -203,23 +195,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     setIsFieldDialogOpen(true);
   };
 
-  const handleSaveFieldEdit = (field: PromptField) => {
-    const currentFields = form.getValues("fields");
-    const fieldToUpdate = { ...editingField, ...field };
-
-    const updatedFields = currentFields.map(f => (f.id === editingField?.id ? fieldToUpdate : f));
-    
-    if (editingField && editingField.name !== fieldToUpdate.name) {
-        const oldPlaceholder = `{{${editingField.name}}}`;
-        const newPlaceholder = `{{${fieldToUpdate.name}}}`;
-        const currentContent = form.getValues('content');
-        form.setValue('content', currentContent.replace(new RegExp(oldPlaceholder, 'g'), newPlaceholder));
-    }
-    
-    form.setValue("fields", updatedFields as PromptField[]);
-    setEditingField(null);
-  };
-
   const removeField = (fieldToRemove: PromptField) => {
     const currentFields = form.getValues("fields");
     form.setValue("fields", currentFields.filter(f => f.id !== fieldToRemove.id));
@@ -234,7 +209,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
-        // Ensure the selection is within the editor
         if (editorRef.current?.contains(range.commonAncestorContainer)) {
           event.preventDefault();
           setSelection(range.cloneRange());
@@ -279,7 +253,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
       ...values,
-      fields: values.isTemplate ? values.fields.map(f => ({ ...f, options: f.options ?? null })) : [],
+      fields: values.isTemplate ? values.fields.map(f => ({ ...f, options: f.options ?? undefined })) : [],
     };
     
     if (isEditing && prompt) {
@@ -298,18 +272,13 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
 
     router.push("/");
   }
-  
-  const handleCancelEdit = () => {
-    setEditingField(null);
-  };
-
 
   return (
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                <div className="lg:col-span-2 space-y-8">
+                <div className="space-y-8 lg:col-span-2">
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Core Prompt</CardTitle>
@@ -323,8 +292,8 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     <FormLabel>Prompt Title</FormLabel>
                                     <FormControl>
                                         <div className="relative">
-                                            <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} maxLength={100} />
-                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                            <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} maxLength={100} className="pr-16" />
+                                            <div className="absolute bottom-0 right-3 flex h-full items-center text-xs text-muted-foreground">
                                                 {field.value.length}/100
                                             </div>
                                         </div>
@@ -351,15 +320,15 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                                     fields={fields}
                                                     isTemplate={isTemplate}
                                                     onChange={(e) => field.onChange(e.target.value)}
-                                                    className="min-h-[300px]"
+                                                    className="min-h-[300px] pr-16"
                                                 />
-                                                <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                                <div className="absolute bottom-2 right-3 text-xs text-muted-foreground">
                                                     {field.value.length}/5000
                                                 </div>
                                             </div>
                                         </FormControl>
                                         <FormDescription>
-                                            {isTemplate && "Select text and use the button below or right-click to create a field."}
+                                            {isTemplate && "Right-click or use the floating button to create a field from selected text."}
                                             {!isTemplate && "The main body of your prompt."}
                                         </FormDescription>
                                         <FormMessage />
@@ -367,7 +336,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     )}
                                 />
                                 {isTemplate && (
-                                    <div className="absolute bottom-12 right-2">
+                                    <div className="absolute bottom-12 right-3">
                                         <Button type="button" size="icon" onClick={handleMobileMakeFieldClick} className="rounded-full shadow-lg h-12 w-12">
                                             <Wand2 className="h-5 w-5" />
                                             <span className="sr-only">Create Field from Selection</span>
@@ -399,8 +368,9 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                                 onChange={(e) => setTagInput(e.target.value)}
                                                 onKeyDown={handleTagKeyDown}
                                                 maxLength={30}
+                                                className="pr-12"
                                             />
-                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                                            <div className="absolute bottom-0 right-3 flex h-full items-center text-xs text-muted-foreground">
                                                 {tagInput.length}/30
                                             </div>
                                         </div>
@@ -525,6 +495,5 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
-
 
     

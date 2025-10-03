@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useForm, FormProvider, useWatch, Control } from 'react-hook-form';
+import { useForm, Control, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
@@ -32,18 +32,19 @@ function generateSchemaAndDefaults(fields: PromptField[]) {
             case 'number':
                 schema = z.preprocess(
                     (a) => {
-                        if (typeof a === 'string' && a.trim() === '') return undefined;
-                        const parsed = parseFloat(z.string().max(100).parse(a));
+                        const s = z.string().max(100).safeParse(a);
+                        if (!s.success || s.data.trim() === '') return undefined;
+                        const parsed = parseFloat(s.data);
                         return isNaN(parsed) ? undefined : parsed;
                     },
                     z.number({ required_error: `${field.name} is required.` })
                 );
-                defaults[field.name] = undefined;
+                defaults[field.name] = '';
                 break;
             case 'choices':
                  if (field.options && field.options.length > 0) {
                     const options = field.options as [string, ...string[]];
-                    schema = z.enum(options).describe(`${field.name} is required.`);
+                    schema = z.enum(options, { required_error: `${field.name} is required.` });
                     defaults[field.name] = undefined;
                 } else {
                     schema = z.string().min(1, `${field.name} is required.`).max(100);
@@ -77,8 +78,6 @@ const generatePromptString = (template: string, formValues: Record<string, any>)
             result = result.replace(placeholder, replacement);
         }
     }
-    // For the final string, we can remove unfilled placeholders.
-    // In the live preview, we want to see them.
     return result.replace(/{{.*?}}/g, '');
 };
 
@@ -218,62 +217,60 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
           <ScrollArea className="h-full">
             <div className="px-6 py-4">
                 <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
-                <FormProvider {...form}>
-                    <form className="space-y-4" key={prompt.id}>
-                    {(prompt.fields || []).map((field) => (
-                        <FormField
-                        key={field.id}
-                        control={form.control}
-                        name={field.name}
-                        render={({ field: formField }) => (
-                            <FormItem>
-                                <FormLabel>{field.name}</FormLabel>
-                                <FormControl>
-                                    <div className="relative">
-                                    {field.type === 'textarea' ? (
-                                        <>
-                                            <Textarea {...formField} value={formField.value ?? ''} className="pr-10" maxLength={3000}/>
-                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
-                                                {(formField.value ?? '').length}/3000
-                                            </div>
-                                        </>
-                                    ) : field.type === 'choices' && field.options ? (
-                                        <Select onValueChange={formField.onChange} defaultValue={formField.value}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={`Select ${field.name}`} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <>
-                                            <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-10" maxLength={100} />
-                                            <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
-                                                {(formField.value ?? '').length}/100
-                                            </div>
-                                        </>
-                                    )}
-                                    {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
-                                            onClick={() => handlePaste(field.name)}
-                                        >
-                                            <ClipboardPaste className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    ))}
-                    </form>
-                </FormProvider>
+                <form className="space-y-4" key={prompt.id}>
+                {(prompt.fields || []).map((field) => (
+                    <FormField
+                    key={field.id}
+                    control={form.control}
+                    name={field.name}
+                    render={({ field: formField }) => (
+                        <FormItem>
+                            <FormLabel>{field.name}</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                {field.type === 'textarea' ? (
+                                    <>
+                                        <Textarea {...formField} value={formField.value ?? ''} className="pr-20" maxLength={3000}/>
+                                        <div className="absolute bottom-2 right-12 text-xs text-muted-foreground">
+                                            {(formField.value ?? '').length}/3000
+                                        </div>
+                                    </>
+                                ) : field.type === 'choices' && field.options ? (
+                                    <Select onValueChange={formField.onChange} defaultValue={formField.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={`Select ${field.name}`} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <>
+                                        <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-20" maxLength={100} />
+                                        <div className="absolute bottom-0 right-12 flex h-full items-center text-xs text-muted-foreground">
+                                            {(formField.value ?? '').length}/100
+                                        </div>
+                                    </>
+                                )}
+                                {(field.type === 'text' || field.type === 'textarea' || field.type === 'number') && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                                        onClick={() => handlePaste(field.name)}
+                                    >
+                                        <ClipboardPaste className="h-4 w-4" />
+                                    </Button>
+                                )}
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                ))}
+                </form>
             </div>
           </ScrollArea>
           <div className="h-full py-4 pr-6">
