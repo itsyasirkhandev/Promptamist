@@ -253,7 +253,15 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
       ...values,
-      fields: values.isTemplate ? values.fields.map(f => ({ ...f, options: f.options ?? undefined })) : [],
+      fields: values.isTemplate
+        ? values.fields.map(f => {
+            const field: Partial<PromptField> = { ...f };
+            if (!field.options) {
+              delete field.options;
+            }
+            return field as PromptField;
+          })
+        : [],
     };
     
     if (isEditing && prompt) {
