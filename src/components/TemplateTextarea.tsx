@@ -27,9 +27,14 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
   };
   
   useEffect(() => {
-    document.addEventListener("selectionchange", handleSelect);
+    const textarea = textareaRef.current;
+    if (textarea) {
+        textarea.addEventListener("select", handleSelect);
+    }
     return () => {
-        document.removeEventListener("selectionchange", handleSelect);
+        if (textarea) {
+            textarea.removeEventListener("select", handleSelect);
+        }
     }
   }, [])
 
@@ -51,7 +56,7 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
       {isTemplate && (
          <div
             ref={backdropRef}
-            className="absolute inset-0 overflow-auto pointer-events-none whitespace-pre-wrap font-mono leading-relaxed tracking-wide text-transparent border border-transparent rounded-md px-3 py-2 text-base md:text-sm"
+            className="absolute inset-0 overflow-auto pointer-events-none whitespace-pre-wrap font-mono leading-relaxed tracking-wide text-transparent border border-transparent rounded-md px-3 py-2 text-sm"
             dangerouslySetInnerHTML={{ __html: highlightedContent + '\n' }}
          />
       )}
@@ -62,11 +67,9 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
         placeholder="e.g., 'Generate 5 blog post ideas about {{topic}}. The ideas should be engaging and SEO-friendly...'"
         className={cn(
           'min-h-[150px] font-mono leading-relaxed tracking-wide',
-          isTemplate ? 'bg-transparent caret-foreground' : ''
+          isTemplate ? 'bg-transparent caret-foreground selection:bg-transparent' : ''
         )}
       />
     </div>
   );
 }
-
-
