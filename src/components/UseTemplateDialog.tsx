@@ -74,45 +74,60 @@ const generatePromptString = (template: string, formValues: Record<string, any>)
             result = result.replace(placeholder, replacement);
         }
     }
-    // Remove any placeholders that were not filled
+    // For the final string, we can remove unfilled placeholders.
+    // In the live preview, we want to see them.
     return result.replace(/{{.*?}}/g, '');
 };
-
 
 function LivePreview({ control, template }: { control: Control<any>, template: string }) {
     const formValues = useWatch({ control });
     const [isCopied, setIsCopied] = useState(false);
     const { toast } = useToast();
 
-    const generatedPrompt = useMemo(() => {
+    const finalGeneratedPrompt = useMemo(() => {
         return generatePromptString(template, formValues);
     }, [formValues, template]);
 
     const handleCopyToClipboard = () => {
-        if (!generatedPrompt) return;
-        navigator.clipboard.writeText(generatedPrompt);
+        if (!finalGeneratedPrompt) return;
+        navigator.clipboard.writeText(finalGeneratedPrompt);
         setIsCopied(true);
         toast({ title: 'Generated prompt copied!' });
         setTimeout(() => setIsCopied(false), 2000);
     };
     
     const renderedPreview = useMemo(() => {
-        // We'll just show the final text, not highlighted placeholders for simplicity.
-        return generatedPrompt;
-    }, [generatedPrompt]);
+        if (!template) return <span className="text-muted-foreground">Fill out the fields to see a preview...</span>;
+
+        const parts = template.split(/({{.*?}})/g).filter(part => part);
+
+        return parts.map((part, index) => {
+            const match = part.match(/{{(.*?)}}/);
+            if (match) {
+                const fieldName = match[1].trim();
+                const fieldValue = formValues[fieldName];
+
+                if (fieldValue) {
+                    return <span key={index} className="bg-primary/20 text-primary rounded-sm px-1">{String(fieldValue)}</span>;
+                }
+                return <span key={index} className="bg-muted text-muted-foreground rounded-sm px-1">{part}</span>;
+            }
+            return <span key={index}>{part}</span>;
+        });
+    }, [template, formValues]);
 
     return (
         <div className="flex flex-col h-full bg-muted/50 rounded-lg border">
             <div className="flex-shrink-0 flex items-center justify-between p-4 border-b">
                 <h3 className="text-sm font-semibold">Live Preview</h3>
-                <Button variant="ghost" size="sm" onClick={handleCopyToClipboard} disabled={!generatedPrompt}>
+                <Button variant="ghost" size="sm" onClick={handleCopyToClipboard} disabled={!finalGeneratedPrompt}>
                     {isCopied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
                     {isCopied ? 'Copied!' : 'Copy'}
                 </Button>
             </div>
             <ScrollArea className="flex-1">
                 <div className="text-sm prose prose-sm dark:prose-invert max-w-full whitespace-pre-wrap p-4">
-                    {generatedPrompt || <span className="text-muted-foreground">Fill out the fields to see a preview...</span>}
+                    {renderedPreview}
                 </div>
             </ScrollArea>
         </div>
@@ -182,12 +197,12 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
+        <DialogHeader className="flex-shrink-0 p-6 pb-4">
           <DialogTitle>Use Template: {prompt.title}</DialogTitle>
           <DialogDescription>Fill in the fields to generate a new prompt from this template.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0">
-          <ScrollArea className="h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-h-0 px-6">
+          <ScrollArea className="h-full -mx-6 px-6">
             <div className="pr-4">
                 <h3 className="text-lg font-semibold mb-4">Template Fields</h3>
                 <FormProvider {...form}>
@@ -225,13 +240,13 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
                 </FormProvider>
             </div>
           </ScrollArea>
-          <ScrollArea className="h-full">
+          <div className="h-full py-4">
              <div className="h-full">
                 <LivePreview control={form.control} template={prompt.content} />
             </div>
-          </ScrollArea>
+          </div>
         </div>
-         <DialogFooter className="flex-shrink-0">
+         <DialogFooter className="flex-shrink-0 p-6 pt-4 border-t">
             <Button onClick={handleSaveClick} disabled={!form.formState.isValid}>
                 <Save className="mr-2 h-4 w-4" />
                 Save New Prompt
