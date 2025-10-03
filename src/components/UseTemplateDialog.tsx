@@ -19,6 +19,7 @@ import { usePrompts } from '@/hooks/use-prompts';
 import { Badge } from './ui/badge';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
+import { SavePromptDialog } from './SavePromptDialog';
 
 
 function generateSchemaAndDefaults(fields: PromptField[]) {
@@ -137,12 +138,10 @@ type UseTemplateDialogProps = {
 };
 
 export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialogProps) {
-  const { addPrompt } = usePrompts();
-  const { toast } = useToast();
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [finalTitle, setFinalTitle] = useState("");
-  const hasFields = useMemo(() => prompt.fields && prompt.fields.length > 0, [prompt.fields]);
+    const hasFields = useMemo(() => prompt.fields && prompt.fields.length > 0, [prompt.fields]);
+    const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+    const [generatedPrompt, setGeneratedPrompt] = useState('');
+
 
   const { dynamicSchema, defaultValues } = useMemo(() => {
     return generateSchemaAndDefaults(prompt.fields || []);
@@ -154,64 +153,17 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     mode: 'onChange'
   });
 
-  const formValues = form.watch();
-
-  const livePreview = useMemo(() => {
-    let content = prompt.content;
-    for (const key in formValues) {
-      const regex = new RegExp(`{{${key}}}`, "g");
-      content = content.replace(regex, (formValues as any)[key] || `{{${key}}}`);
-    }
-    return content;
-  }, [prompt.content, formValues]);
-  
-  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      const newTag = tagInput.trim();
-      if (newTag && !tags.includes(newTag)) {
-        setTags([...tags, newTag]);
-        setTagInput("");
-      }
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-
-  const handleSave = () => {
-     if (!finalTitle) {
-      toast({
-        variant: "destructive",
-        title: "Title Required",
-        description: "Please provide a title for the new prompt.",
-      });
-      return;
-    }
-    
-    addPrompt({
-      title: finalTitle,
-      content: livePreview,
-      tags: tags,
-      isTemplate: false,
-      fields: [],
-    });
-    toast({
-      title: "Prompt Saved!",
-      description: "The new prompt has been added to your library.",
-    });
-    onClose();
+  const handleSaveClick = () => {
+    const formValues = form.getValues();
+    const generated = generatePromptString(prompt.content, formValues);
+    setGeneratedPrompt(generated);
+    setIsSaveDialogOpen(true);
   };
   
   useEffect(() => {
-    // Reset state when dialog is closed or prompt changes
     if (isOpen) {
         const { defaultValues: newDefaults } = generateSchemaAndDefaults(prompt.fields || []);
         form.reset(newDefaults);
-        setTags(prompt.tags || []);
-        setFinalTitle(`Used: ${prompt.title}`);
     }
   }, [isOpen, form, prompt]);
 
@@ -239,6 +191,7 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     }
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[90vh]">
         <DialogHeader>
@@ -288,47 +241,30 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
              <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Live Preview</h3>
                 <div className="rounded-md border bg-muted p-4 min-h-[200px] whitespace-pre-wrap text-sm">
-                    {livePreview}
+                    <LivePreview control={form.control} template={prompt.content} />
                 </div>
-                <Separator />
-                 <h3 className="text-lg font-semibold">Save as New Prompt</h3>
-                 <div className="space-y-2">
-                    <Label htmlFor="new-prompt-title">New Prompt Title</Label>
-                    <Input id="new-prompt-title" value={finalTitle} onChange={(e) => setFinalTitle(e.target.value)} placeholder="Enter a title for the generated prompt" />
-                 </div>
-                 <div className="space-y-2">
-                    <Label>Tags</Label>
-                    <Input 
-                        placeholder="Type a tag and press Enter" 
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={handleTagKeyDown}
-                    />
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {tags.map(tag => (
-                          <Badge key={tag} variant="secondary">
-                            {tag}
-                            <button
-                              type="button"
-                              className="ml-1.5 rounded-full outline-none"
-                              onClick={() => removeTag(tag)}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                    </div>
-                 </div>
             </div>
           </ScrollArea>
         </div>
          <DialogFooter>
-            <Button onClick={handleSave} disabled={!form.formState.isValid || !finalTitle}>
-                <PlusCircle className="mr-2 h-4 w-4" />
+            <Button onClick={handleSaveClick} disabled={!form.formState.isValid}>
+                <Save className="mr-2 h-4 w-4" />
                 Save New Prompt
             </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <SavePromptDialog
+        isOpen={isSaveDialogOpen}
+        onClose={() => setIsSaveDialogOpen(false)}
+        onSaveSuccess={() => {
+            setIsSaveDialogOpen(false);
+            onClose();
+        }}
+        generatedContent={generatedPrompt}
+        originalTitle={prompt.title}
+        originalTags={prompt.tags}
+    />
+    </>
   );
 }
