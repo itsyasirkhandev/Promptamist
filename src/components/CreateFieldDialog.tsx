@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -28,16 +29,26 @@ interface CreateFieldDialogProps {
 export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }: CreateFieldDialogProps) {
   const form = useForm<z.infer<typeof fieldSchema>>({
     resolver: zodResolver(fieldSchema),
-    defaultValues: existingField ? {
-        name: existingField.name,
-        type: existingField.type,
-        options: existingField.options?.map(o => ({ value: o })) || [],
-    } : {
+    defaultValues: {
       name: "",
       type: "text",
       options: [],
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset(existingField ? {
+          name: existingField.name,
+          type: existingField.type,
+          options: existingField.options?.map(o => ({ value: o })) || [],
+      } : {
+        name: "",
+        type: "text",
+        options: [],
+      });
+    }
+  }, [isOpen, existingField, form]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -55,7 +66,6 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
     };
     onAddField(newField);
     onClose();
-    form.reset();
   };
   
   const handleClose = () => {
@@ -67,7 +77,7 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{existingField ? 'Edit Field' : 'Create New Field'}</DialogTitle>
+          <DialogTitle>{existingField && existingField.id ? 'Edit Field' : 'Create New Field'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -139,7 +149,7 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
               </div>
             )}
             <DialogFooter>
-              <Button type="submit">{existingField ? 'Save Changes' : 'Add Field'}</Button>
+              <Button type="submit">{existingField && existingField.id ? 'Save Changes' : 'Add Field'}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -147,3 +157,5 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
     </Dialog>
   );
 }
+
+    

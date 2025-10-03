@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -98,11 +99,10 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     const currentFields = form.getValues("fields");
     const existingFieldIndex = currentFields.findIndex(f => f.id === field.id);
     
-    if (selectionForField) {
+    if (selectionForField && !editingField) {
       const currentContent = form.getValues("content");
       const updatedContent = currentContent.replace(selectionForField, `{{${field.name}}}`);
       form.setValue("content", updatedContent);
-      setSelectionForField(null);
     }
     
     if (existingFieldIndex > -1) {
@@ -115,6 +115,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       form.setValue("fields", [...currentFields, field]);
     }
     setEditingField(null);
+    setSelectionForField(null);
   };
   
   const handleEditField = (field: PromptField) => {
@@ -136,11 +137,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
 
   const handleSelectionChange = (hasSelection: boolean, selectionText: string) => {
     setHasSelection(hasSelection);
-    if(hasSelection) {
-      setSelectionForField(selectionText);
-    } else {
-      setSelectionForField(null);
-    }
+    setSelectionForField(hasSelection ? selectionText : null);
   }
   
   const isTemplate = form.watch("isTemplate");
@@ -354,3 +351,5 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
+
+    
