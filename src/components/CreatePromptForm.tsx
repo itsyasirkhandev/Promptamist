@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2, Check } from "lucide-react";
 import { Menu, Item, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 
@@ -161,9 +161,25 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     setIsFieldDialogOpen(false);
   };
   
-  const handleEditField = (field: PromptField) => {
+  const handleEditFieldClick = (field: PromptField) => {
     setEditingField(field);
-    setIsFieldDialogOpen(true);
+  };
+
+  const handleSaveFieldEdit = (field: PromptField) => {
+    const currentFields = form.getValues("fields");
+    const fieldToUpdate = { ...editingField, ...field };
+
+    const updatedFields = currentFields.map(f => (f.id === editingField?.id ? fieldToUpdate : f));
+    
+    if (editingField && editingField.name !== fieldToUpdate.name) {
+        const oldPlaceholder = `{{${editingField.name}}}`;
+        const newPlaceholder = `{{${fieldToUpdate.name}}}`;
+        const currentContent = form.getValues('content');
+        form.setValue('content', currentContent.replace(new RegExp(oldPlaceholder, 'g'), newPlaceholder));
+    }
+    
+    form.setValue("fields", updatedFields as PromptField[]);
+    setEditingField(null);
   };
 
   const removeField = (fieldToRemove: PromptField) => {
@@ -180,6 +196,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
+        // Ensure the selection is within the editor
         if (editorRef.current?.contains(range.commonAncestorContainer)) {
           event.preventDefault();
           setSelection(range.cloneRange());
@@ -203,6 +220,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
 
   const isTemplate = form.watch("isTemplate");
   const fields = form.watch("fields");
+  const watchedContent = form.watch("content");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
@@ -269,9 +287,9 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                             <ContentEditable
                                 ref={editorRef}
                                 html={field.value}
+                                fields={fields}
                                 isTemplate={isTemplate}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                className="min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                             />
                         </div>
                     </FormControl>
@@ -363,11 +381,11 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                 <div className="space-y-3">
                                     <Input 
                                       defaultValue={field.name} 
-                                      onChange={(e) => setEditingField({...editingField, name: e.target.value})}
+                                      onChange={(e) => setEditingField(prev => prev ? {...prev, name: e.target.value} : null)}
                                     />
                                     <Select 
                                       defaultValue={field.type}
-                                      onValueChange={(value) => setEditingField({...editingField, type: value as any})}
+                                      onValueChange={(value) => setEditingField(prev => prev ? {...prev, type: value as any} : null)}
                                     >
                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                         <SelectContent>
@@ -379,7 +397,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     </Select>
                                     <div className="flex justify-end gap-2">
                                         <Button type="button" variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4" /></Button>
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => { handleAddField(editingField); }}><Check className="h-4 w-4" /></Button>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => editingField && handleSaveFieldEdit(editingField)}><Check className="h-4 w-4" /></Button>
                                     </div>
                                 </div>
                              ) : (
@@ -389,7 +407,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     <p className="text-sm text-muted-foreground">Type: {field.type}</p>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" type="button" onClick={() => setEditingField(field)}>
+                                    <Button variant="ghost" size="icon" type="button" onClick={() => handleEditFieldClick(field)}>
                                       <Edit className="h-4 w-4" />
                                     </Button>
                                     <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field)}>
