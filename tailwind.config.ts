@@ -9,12 +9,22 @@ export default {
   ],
   theme: {
     extend: {
+      boxShadow: {
+        '2xs': '4px 4px 0px 0px hsl(0 0% 0% / 0.50)',
+        'xs': '4px 4px 0px 0px hsl(0 0% 0% / 0.50)',
+        'sm': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00)',
+        'DEFAULT': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 1px 2px -1px hsl(0 0% 0% / 1.00)',
+        'md': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 2px 4px -1px hsl(0 0% 0% / 1.00)',
+        'lg': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 4px 6px -1px hsl(0 0% 0% / 1.00)',
+        'xl': '4px 4px 0px 0px hsl(0 0% 0% / 1.00), 4px 8px 10px -1px hsl(0 0% 0% / 1.00)',
+        '2xl': '4px 4px 0px 0px hsl(0 0% 0% / 2.50)',
+      },
       fontFamily: {
         sans: ["var(--font-sans)", "sans-serif"],
         serif: ["var(--font-serif)", "serif"],
         mono: ["var(--font-mono)", "monospace"],
         body: ['var(--font-sans)', 'sans-serif'],
-        headline: ['var(--font-serif)', 'serif'],
+        headline: ['var(--font-sans)', 'sans-serif'],
         code: ['var(--font-mono)', 'monospace'],
       },
       colors: {
