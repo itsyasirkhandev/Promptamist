@@ -225,7 +225,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
       ...values,
-      fields: values.isTemplate ? values.fields : [],
+      fields: values.isTemplate ? values.fields.map(f => ({ ...f, options: f.options ?? null })) : [],
     };
     
     if (isEditing && prompt) {
@@ -459,3 +459,4 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
+
