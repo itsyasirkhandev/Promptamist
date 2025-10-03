@@ -76,17 +76,12 @@ export default function Home() {
   };
 
   const renderSkeletons = () => (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i}>
-          <CardHeader>
-            <div className="flex justify-between items-start">
-                <div>
-                    <Skeleton className="mb-2 h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                </div>
-                <Skeleton className="h-8 w-8" />
-            </div>
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Card key={i} className="flex flex-col">
+          <CardHeader className="flex-grow">
+            <Skeleton className="h-6 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-1/2" />
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -106,11 +101,14 @@ export default function Home() {
 
   return (
     <div className="container mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-headline text-3xl font-bold tracking-tight">
-            Prompt Library
-        </h1>
-        <Button asChild className="hidden sm:flex">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 className="font-headline text-3xl font-bold tracking-tight">
+                Prompt Library
+            </h1>
+            <p className="text-muted-foreground mt-1">Your central hub for crafting and managing AI prompts.</p>
+        </div>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/create">
             <FilePlus className="mr-2 h-4 w-4" />
             New Prompt
@@ -118,17 +116,17 @@ export default function Home() {
         </Button>
       </div>
 
-       {isLoaded && prompts.length > 0 && (
-        <div className="mb-8 flex flex-col gap-4">
-            <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-                type="text"
-                placeholder="Search prompts by title or content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-            />
+       {(isLoaded && prompts.length > 0) || hasActiveFilter ? (
+        <div className="mb-8 space-y-4">
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    type="text"
+                    placeholder="Search prompts by title or content..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-full"
+                />
             </div>
             {allTags.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -138,6 +136,7 @@ export default function Home() {
                     variant={selectedTag === tag ? "default" : "outline"}
                     onClick={() => handleTagClick(tag)}
                     size="sm"
+                    className="rounded-full"
                 >
                     {tag}
                     {selectedTag === tag && <X className="ml-1.5 h-3 w-3" />}
@@ -146,12 +145,12 @@ export default function Home() {
             </div>
             )}
         </div>
-       )}
+       ) : null}
 
       {!isLoaded ? (
         renderSkeletons()
       ) : filteredPrompts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredPrompts.map((prompt) => (
             <PromptCard key={prompt.id} prompt={prompt} />
           ))}

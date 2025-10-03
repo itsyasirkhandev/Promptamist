@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -69,48 +70,51 @@ export function PromptCard({ prompt }: PromptCardProps) {
 
   return (
     <>
-    <Card className="flex h-full flex-col transition-shadow duration-300 hover:shadow-lg">
+    <Card className="flex h-full flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       <CardHeader>
-        <div className="flex justify-between items-start">
-            <div>
-                 <CardTitle className="font-headline">{prompt.title}</CardTitle>
-                <CardDescription>
-                  {prompt.createdAt ? `Created on ${prompt.createdAt.toDate().toLocaleDateString()}` : 'Creating...'}
-                </CardDescription>
-            </div>
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                    <Link href={`/edit/${prompt.id}`} className="cursor-pointer">
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Edit</span>
-                    </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive cursor-pointer">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex-1">
+            <CardTitle className="font-headline text-lg mb-1 line-clamp-2">{prompt.title}</CardTitle>
+            <CardDescription className="text-xs">
+              {prompt.createdAt ? `Created on ${prompt.createdAt.toDate().toLocaleDateString()}` : 'Creating...'}
+            </CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">More options</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                  <Link href={`/edit/${prompt.id}`} className="cursor-pointer">
+                      <Edit className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                  </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive cursor-pointer focus:text-destructive focus:bg-destructive/10">
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
         <div className="flex flex-wrap gap-2">
-          {prompt.isTemplate && <Badge variant="default">Template</Badge>}
-          {prompt.tags.length > 0 ? (
-            prompt.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
-                {tag}
-              </Badge>
-            ))
-          ) : (
-            !prompt.isTemplate && <p className="text-sm text-muted-foreground">No tags</p>
+          {prompt.isTemplate && <Badge variant="default" className="rounded-md">Template</Badge>}
+          {prompt.tags?.slice(0, 3).map((tag) => (
+            <Badge key={tag} variant="secondary" className="rounded-md">
+              {tag}
+            </Badge>
+          ))}
+          {prompt.tags?.length > 3 && (
+            <Badge variant="outline" className="rounded-md">
+              +{prompt.tags.length - 3}
+            </Badge>
           )}
+          {prompt.tags?.length === 0 && !prompt.isTemplate && <p className="text-sm text-muted-foreground">No tags</p>}
         </div>
       </CardContent>
       <CardFooter>
