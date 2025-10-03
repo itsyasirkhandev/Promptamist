@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ControllerRenderProps } from 'react-hook-form';
+import React, { useState, useRef, useMemo } from 'react';
+import type { ControllerRenderProps } from 'react-hook-form';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { Wand2 } from 'lucide-react';
