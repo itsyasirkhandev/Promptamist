@@ -62,11 +62,11 @@ export function usePrompts() {
     return () => unsubscribe();
   }, [firestore, user]);
 
-  const addPrompt = useCallback(async (prompt: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
+  const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
     if (!firestore || !user) return;
     const promptsRef = collection(firestore, 'prompts');
     const newPrompt = {
-      ...prompt,
+      ...promptData,
       userId: user.uid,
       createdAt: serverTimestamp(),
     };

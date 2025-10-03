@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Copy, Check, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { Copy, Check, MoreVertical, Edit, Trash2, Wand2 } from "lucide-react";
 import type { Prompt } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { UseTemplateDialog } from "./UseTemplateDialog";
 
 
 interface PromptCardProps {
@@ -41,6 +42,7 @@ interface PromptCardProps {
 export function PromptCard({ prompt }: PromptCardProps) {
   const [hasCopied, setHasCopied] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isUseTemplateOpen, setIsUseTemplateOpen] = useState(false);
   const { toast } = useToast();
   const { deletePrompt } = usePrompts();
 
@@ -99,6 +101,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
       </CardHeader>
       <CardContent className="flex-grow">
         <div className="flex flex-wrap gap-2">
+          {prompt.isTemplate && <Badge variant="default">Template</Badge>}
           {prompt.tags.length > 0 ? (
             prompt.tags.map((tag) => (
               <Badge key={tag} variant="secondary">
@@ -106,19 +109,26 @@ export function PromptCard({ prompt }: PromptCardProps) {
               </Badge>
             ))
           ) : (
-            <p className="text-sm text-muted-foreground">No tags</p>
+            !prompt.isTemplate && <p className="text-sm text-muted-foreground">No tags</p>
           )}
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={handleCopy} className="w-full">
-          {hasCopied ? (
-            <Check className="mr-2 h-4 w-4" />
-          ) : (
-            <Copy className="mr-2 h-4 w-4" />
-          )}
-          {hasCopied ? "Copied!" : "Copy Prompt"}
-        </Button>
+        {prompt.isTemplate ? (
+            <Button onClick={() => setIsUseTemplateOpen(true)} className="w-full">
+                <Wand2 className="mr-2 h-4 w-4" />
+                Use Template
+            </Button>
+        ) : (
+            <Button onClick={handleCopy} className="w-full">
+              {hasCopied ? (
+                <Check className="mr-2 h-4 w-4" />
+              ) : (
+                <Copy className="mr-2 h-4 w-4" />
+              )}
+              {hasCopied ? "Copied!" : "Copy Prompt"}
+            </Button>
+        )}
       </CardFooter>
     </Card>
      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -138,6 +148,13 @@ export function PromptCard({ prompt }: PromptCardProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {prompt.isTemplate && (
+        <UseTemplateDialog
+            isOpen={isUseTemplateOpen}
+            onClose={() => setIsUseTemplateOpen(false)}
+            prompt={prompt}
+        />
+      )}
     </>
   );
 }
