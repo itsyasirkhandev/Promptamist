@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2, Wand2 } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2, Wand2, ClipboardPaste } from "lucide-react";
 import { Menu, Item, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 
@@ -242,6 +242,23 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     }
     setIsFieldDialogOpen(true);
   };
+  
+  const handlePaste = async (fieldName: 'title' | 'content') => {
+    try {
+        const text = await navigator.clipboard.readText();
+        form.setValue(fieldName, text, { shouldValidate: true, shouldDirty: true });
+        toast({
+            title: "Pasted from clipboard!",
+        });
+    } catch (err) {
+        console.error('Failed to read clipboard contents: ', err);
+        toast({
+            variant: "destructive",
+            title: "Failed to paste",
+            description: "Could not read content from the clipboard.",
+        });
+    }
+  };
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -250,7 +267,8 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       fields: values.isTemplate
         ? values.fields.map(f => {
             const field: Partial<PromptField> = { ...f };
-            if (field.type !== 'choices' || !field.options) {
+            // This is a workaround to avoid Firestore error with undefined field values.
+            if (field.type !== 'choices' || !field.options || field.options.length === 0) {
               delete field.options;
             }
             return field as PromptField;
@@ -294,10 +312,19 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     <FormLabel>Prompt Title</FormLabel>
                                     <FormControl>
                                         <div className="relative">
-                                            <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} maxLength={100} className="pr-16" />
-                                            <div className="absolute bottom-0 right-3 flex h-full items-center text-xs text-muted-foreground">
+                                            <Input placeholder="e.g., 'Blog Post Idea Generator'" {...field} maxLength={100} className="pr-28" />
+                                            <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center text-xs text-muted-foreground">
                                                 {field.value.length}/100
                                             </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                                                onClick={() => handlePaste('title')}
+                                            >
+                                                <ClipboardPaste className="h-4 w-4" />
+                                            </Button>
                                         </div>
                                     </FormControl>
                                     <FormDescription>
@@ -313,7 +340,19 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     name="content"
                                     render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Prompt Content</FormLabel>
+                                        <FormLabel className="flex items-center justify-between">
+                                            <span>Prompt Content</span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handlePaste('content')}
+                                                className="h-auto px-2 py-1 text-xs"
+                                            >
+                                                <ClipboardPaste className="mr-1 h-3 w-3" />
+                                                Paste
+                                            </Button>
+                                        </FormLabel>
                                         <FormControl>
                                             <div onContextMenu={handleContextMenu} className="relative">
                                                 <ContentEditable
@@ -497,4 +536,3 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
-
