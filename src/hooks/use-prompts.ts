@@ -50,13 +50,7 @@ export function usePrompts() {
         setIsLoaded(true);
       },
       (err) => {
-        errorEmitter.emit(
-          'permission-error',
-          new FirestorePermissionError({
-            path: q.toString(),
-            operation: 'list',
-          })
-        );
+        // Errors are surfaced by the FirebaseErrorListener
         console.error("Error fetching prompts:", err);
         setIsLoaded(true);
       }
