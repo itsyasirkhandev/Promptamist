@@ -19,13 +19,39 @@ import {
 import { AppLayout } from '@/components/AppLayout';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
+const siteUrl = "https://promptamist.netlify.app";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'PromptCraft | Your Personal AI Prompt Library',
-    template: '%s | PromptCraft',
+    default: 'Promptamist | Your Personal AI Prompt Library & Manager',
+    template: '%s | Promptamist',
   },
-  description: 'Craft, save, and organize your AI prompts with ease. PromptCraft helps you build a powerful, personal library for faster and more effective AI interactions.',
+  description: 'Craft, save, organize, and re-use your AI prompts with Promptamist. Build a powerful, personal library of prompt templates for faster and more effective AI interactions.',
+  keywords: ['AI', 'Prompt Engineering', 'Prompt Library', 'Prompt Manager', 'ChatGPT Prompts', 'LLM Prompts', 'Prompt Templates', 'GenAI'],
+  authors: [{ name: 'Yasir', url: 'https://yasir.qzz.io' }],
+  creator: 'Yasir',
+  publisher: 'Yasir',
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Promptamist | Your Personal AI Prompt Library & Manager',
+    description: 'Craft, save, organize, and re-use your AI prompts with Promptamist. Build a powerful, personal library for faster and more effective AI interactions.',
+    url: siteUrl,
+    siteName: 'Promptamist',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Promptamist | Your Personal AI Prompt Library & Manager',
+    description: 'Craft, save, organize, and re-use your AI prompts with Promptamist. Build a powerful, personal library for faster and more effective AI interactions.',
+  },
 };
 
 export default function RootLayout({

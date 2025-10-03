@@ -26,7 +26,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="p-4 border-b">
           <Link href="/" className="flex items-center space-x-2">
             <Bot className="h-6 w-6 text-primary" />
-            <span className="font-bold inline-block">PromptCraft</span>
+            <span className="font-bold inline-block">Promptamist</span>
           </Link>
         </header>
         <main className="flex-grow">
@@ -42,12 +42,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarHeader>
           <Link href="/" className="flex items-center space-x-2 p-2">
             <Bot className="h-6 w-6 text-primary" />
-            <span className="font-bold inline-block">PromptCraft</span>
+            <span className="font-bold inline-block">Promptamist</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>{/* Navigation items can go here */}</SidebarContent>
         <SidebarFooter>
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between w-full p-2">
             <UserProfile />
             <ThemeToggle />
           </div>

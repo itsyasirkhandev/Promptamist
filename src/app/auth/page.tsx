@@ -20,7 +20,7 @@ export default function AuthPage() {
             {showSignUp ? 'Create an Account' : 'Welcome Back'}
           </CardTitle>
           <CardDescription>
-            {showSignUp ? 'Enter your details to get started.' : 'Sign in to access your prompt library.'}
+            {showSignUp ? 'Enter your details to get started.' : 'Sign in to access your Promptamist library.'}
           </CardDescription>
         </CardHeader>
         <CardContent>

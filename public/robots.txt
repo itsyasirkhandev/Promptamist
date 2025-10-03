@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /create
+Disallow: /edit/
+
+Sitemap: https://promptamist.netlify.app/sitemap.xml
+
+User-agent: Google-Extended
+Disallow: /
