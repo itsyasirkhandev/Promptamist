@@ -19,13 +19,21 @@ function EmptyState({ onClear, isFiltered }: { onClear: () => void; isFiltered: 
       </h2>
       <p className="mt-2 mb-6 text-muted-foreground">
         {isFiltered
-          ? "No prompts matched your search. Try a different search term or filter."
+          ? "No prompts matched your search. Why not create a new one?"
           : "You haven't created any prompts yet. Let's change that!"}
       </p>
       {isFiltered ? (
-        <Button variant="outline" onClick={onClear}>
-          Clear Search & Filters
-        </Button>
+        <div className="flex gap-4">
+            <Button variant="outline" onClick={onClear}>
+                Clear Search & Filters
+            </Button>
+            <Button asChild>
+              <Link href="/create">
+                <FilePlus className="mr-2 h-4 w-4" />
+                Create a New Prompt
+              </Link>
+            </Button>
+        </div>
       ) : (
         <Button asChild>
           <Link href="/create">
@@ -149,7 +157,7 @@ export default function Home() {
           ))}
         </div>
       ) : (
-        <EmptyState onClear={clearFilters} isFiltered={hasActiveFilter || prompts.length === 0 && !hasActiveFilter} />
+        <EmptyState onClear={clearFilters} isFiltered={hasActiveFilter} />
       )}
       
       <div className="fixed bottom-4 right-4 sm:hidden">
