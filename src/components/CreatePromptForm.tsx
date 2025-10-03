@@ -91,7 +91,14 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   }, [isEditing, prompt, form]);
 
   useEffect(() => {
-    if (!isTemplate) return;
+    if (!isTemplate) {
+        // If templating is turned off, clear fields to be safe.
+        const currentFields = form.getValues("fields");
+        if (currentFields.length > 0) {
+            form.setValue('fields', []);
+        }
+        return;
+    };
 
     const currentFields = form.getValues("fields");
     if (!currentFields) return;
@@ -193,6 +200,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   
   const handleEditFieldClick = (field: PromptField) => {
     setEditingField(field);
+    setIsFieldDialogOpen(true);
   };
 
   const handleSaveFieldEdit = (field: PromptField) => {
@@ -300,8 +308,8 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-                <div className="md:col-span-2 space-y-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <div className="lg:col-span-2 space-y-8">
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline">Core Prompt</CardTitle>
@@ -457,30 +465,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                             <div className="space-y-2">
                                 {fields.map((field) => (
                                 <div key={field.id} className="rounded-md border p-3">
-                                    {editingField?.id === field.id ? (
-                                        <div className="space-y-3">
-                                            <Input 
-                                            defaultValue={field.name} 
-                                            onChange={(e) => setEditingField(prev => prev ? {...prev, name: e.target.value} : null)}
-                                            />
-                                            <Select 
-                                            defaultValue={field.type}
-                                            onValueChange={(value) => setEditingField(prev => prev ? {...prev, type: value as any} : null)}
-                                            >
-                                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="text">Text</SelectItem>
-                                                    <SelectItem value="textarea">Textarea</SelectItem>
-                                                    <SelectItem value="number">Number</SelectItem>
-                                                    <SelectItem value="choices">Choices</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <div className="flex justify-end gap-2">
-                                                <Button type="button" variant="ghost" size="icon" onClick={handleCancelEdit}><X className="h-4 w-4" /></Button>
-                                                <Button type="button" variant="ghost" size="icon" onClick={() => editingField && handleSaveFieldEdit(editingField)}><Check className="h-4 w-4" /></Button>
-                                            </div>
-                                        </div>
-                                    ) : (
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="font-semibold">{field.name}</p>
@@ -495,7 +479,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                             </Button>
                                         </div>
                                         </div>
-                                    )}
                                 </div>
                                 ))}
                             </div>
@@ -542,5 +525,6 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
+
 
     
