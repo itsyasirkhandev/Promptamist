@@ -41,7 +41,7 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
   const highlightedContent = useMemo(() => {
     if (!isTemplate) return field.value;
     const regex = /{{(.*?)}}/g;
-    return field.value.replace(regex, `<span class="bg-primary/20 rounded-sm px-1 text-primary font-medium">${'$&'}</span>`);
+    return field.value.replace(regex, `<span class="bg-primary/20 rounded-sm px-1">${'$&'}</span>`);
   }, [field.value, isTemplate]);
 
   const handleScroll = () => {
@@ -67,7 +67,7 @@ export function TemplateTextarea({ field, isTemplate, onSelectionChange }: Templ
         placeholder="e.g., 'Generate 5 blog post ideas about {{topic}}. The ideas should be engaging and SEO-friendly...'"
         className={cn(
           'min-h-[150px] font-mono leading-relaxed tracking-wide',
-          isTemplate ? 'bg-transparent caret-foreground selection:bg-transparent' : ''
+          isTemplate ? 'bg-transparent caret-foreground' : ''
         )}
       />
     </div>
