@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +49,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<PromptField | null>(null);
   const [selectionForField, setSelectionForField] = useState<string | null>(null);
+  const [hasSelection, setHasSelection] = useState(false);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -131,6 +132,15 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     setEditingField({ id: '', name: selection, type: 'text' });
     setIsFieldDialogOpen(true);
   };
+
+  const handleSelectionChange = (hasSelection: boolean, selectionText: string) => {
+    setHasSelection(hasSelection);
+    if(hasSelection) {
+      setSelectionForField(selectionText);
+    } else {
+      setSelectionForField(null);
+    }
+  }
   
   const isTemplate = form.watch("isTemplate");
   const fields = form.watch("fields");
@@ -183,26 +193,42 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prompt Content</FormLabel>
-                  <FormControl>
-                    <TemplateTextarea 
-                      field={field} 
-                      isTemplate={isTemplate}
-                      onMakeField={handleMakeField}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    The main body of your prompt. For templates, use double curly braces like {`{{your_field_name}}`}.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+            <div className="relative">
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prompt Content</FormLabel>
+                    <FormControl>
+                      <TemplateTextarea 
+                        field={field} 
+                        isTemplate={isTemplate}
+                        onSelectionChange={handleSelectionChange}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      The main body of your prompt. For templates, use double curly braces like {`{{your_field_name}}`}.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isTemplate && (
+                <div className="absolute bottom-12 right-2">
+                  <Button 
+                    type="button" 
+                    size="sm"
+                    onClick={() => selectionForField && handleMakeField(selectionForField)}
+                    disabled={!hasSelection}
+                    className="h-7 px-2"
+                  >
+                    <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+                    Make Field
+                  </Button>
+                </div>
               )}
-            />
+            </div>
             <FormField
               control={form.control}
               name="tags"

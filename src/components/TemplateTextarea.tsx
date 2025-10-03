@@ -1,81 +1,36 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import type { ControllerRenderProps } from 'react-hook-form';
 import { Textarea } from './ui/textarea';
-import { Button } from './ui/button';
-import { Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TemplateTextareaProps {
   field: ControllerRenderProps<any, 'content'>;
   isTemplate: boolean;
-  onMakeField: (selection: string) => void;
+  onSelectionChange: (hasSelection: boolean, selectionText: string) => void;
 }
 
-export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTextareaProps) {
-  const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
-  const [buttonPosition, setButtonPosition] = useState<{ top: number; left: number } | null>(null);
+export function TemplateTextarea({ field, isTemplate, onSelectionChange }: TemplateTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = () => {
-    if (!textareaRef.current || !isTemplate) return;
+    if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
     const { selectionStart, selectionEnd } = textarea;
-
-    if (selectionStart !== selectionEnd) {
-      setSelection({ start: selectionStart, end: selectionEnd });
-      
-      const preSelectionText = textarea.value.substring(0, selectionStart);
-      const selectionText = textarea.value.substring(selectionStart, selectionEnd);
-
-      const tempDiv = document.createElement('div');
-      const style = getComputedStyle(textarea);
-      ['font', 'lineHeight', 'padding', 'border', 'letterSpacing', 'wordSpacing'].forEach(prop => {
-        tempDiv.style[prop as any] = style[prop as any];
-      });
-      tempDiv.style.visibility = 'hidden';
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.whiteSpace = 'pre-wrap';
-      tempDiv.style.width = `${textarea.clientWidth}px`;
-      
-      const preSpan = document.createElement('span');
-      preSpan.textContent = preSelectionText;
-      
-      const selSpan = document.createElement('span');
-      selSpan.textContent = selectionText;
-
-      tempDiv.appendChild(preSpan);
-      tempDiv.appendChild(selSpan);
-      
-      document.body.appendChild(tempDiv);
-      
-      const rect = selSpan.getBoundingClientRect();
-      const textareaRect = textarea.getBoundingClientRect();
-
-      document.body.removeChild(tempDiv);
-      
-      const top = rect.top - textareaRect.top + textarea.scrollTop - 32;
-      const left = rect.left - textareaRect.left + textarea.scrollLeft;
-
-      setButtonPosition({ top, left });
-
-    } else {
-      setSelection(null);
-      setButtonPosition(null);
-    }
+    const hasSelection = selectionStart !== selectionEnd;
+    const selectedText = textarea.value.substring(selectionStart, selectionEnd);
+    onSelectionChange(hasSelection, selectedText);
   };
-
-  const handleMakeFieldClick = () => {
-    if (selection && textareaRef.current) {
-      const selectedText = textareaRef.current.value.substring(selection.start, selection.end);
-      onMakeField(selectedText);
-      setSelection(null);
-      setButtonPosition(null);
+  
+  useEffect(() => {
+    document.addEventListener("selectionchange", handleSelect);
+    return () => {
+        document.removeEventListener("selectionchange", handleSelect);
     }
-  };
+  }, [handleSelect])
 
   const highlightedContent = useMemo(() => {
     if (!isTemplate) return field.value;
@@ -87,9 +42,6 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
     if (backdropRef.current && textareaRef.current) {
       backdropRef.current.scrollTop = textareaRef.current.scrollTop;
       backdropRef.current.scrollLeft = textareaRef.current.scrollLeft;
-    }
-    if (selection) {
-        handleSelect();
     }
   };
   
@@ -105,7 +57,6 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
       <Textarea
         {...field}
         ref={textareaRef}
-        onSelect={handleSelect}
         onScroll={handleScroll}
         placeholder="e.g., 'Generate 5 blog post ideas about {{topic}}. The ideas should be engaging and SEO-friendly...'"
         className={cn(
@@ -113,19 +64,6 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
           isTemplate ? 'bg-transparent text-transparent caret-foreground selection:bg-blue-300/30' : ''
         )}
       />
-      {buttonPosition && (
-        <Button
-          type="button"
-          size="sm"
-          className="absolute h-7 px-2"
-          style={{ top: `${buttonPosition.top}px`, left: `${buttonPosition.left}px` }}
-          onClick={handleMakeFieldClick}
-          onMouseDown={(e) => e.preventDefault()}
-        >
-          <Wand2 className="mr-1.5 h-3.5 w-3.5" />
-          Make Field
-        </Button>
-      )}
     </div>
   );
 }
