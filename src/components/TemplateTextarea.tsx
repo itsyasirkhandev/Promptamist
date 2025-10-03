@@ -5,6 +5,7 @@ import { ControllerRenderProps } from 'react-hook-form';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { Wand2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TemplateTextareaProps {
   field: ControllerRenderProps<any, 'content'>;
@@ -32,7 +33,11 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
       const selectionText = textarea.value.substring(selectionStart, selectionEnd);
 
       const tempDiv = document.createElement('div');
-      tempDiv.style.font = getComputedStyle(textarea).font;
+      // Copy relevant styles from the textarea
+      const style = getComputedStyle(textarea);
+      ['font', 'lineHeight', 'padding', 'border', 'letterSpacing', 'wordSpacing'].forEach(prop => {
+        tempDiv.style[prop as any] = style[prop as any];
+      });
       tempDiv.style.visibility = 'hidden';
       tempDiv.style.position = 'absolute';
       tempDiv.style.whiteSpace = 'pre-wrap';
@@ -54,10 +59,11 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
 
       document.body.removeChild(tempDiv);
       
-      const top = rect.top - textareaRect.top - textarea.scrollTop;
-      const left = rect.left - textareaRect.left - textarea.scrollLeft;
+      // Position the button above the selection
+      const top = rect.top - textareaRect.top + textarea.scrollTop - 32;
+      const left = rect.left - textareaRect.left + textarea.scrollLeft;
 
-      setButtonPosition({ top: top - 32, left });
+      setButtonPosition({ top, left });
 
     } else {
       setSelection(null);
@@ -86,7 +92,9 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
       backdropRef.current.scrollLeft = textareaRef.current.scrollLeft;
     }
     // Recalculate button position on scroll
-    handleSelect();
+    if (selection) {
+        handleSelect();
+    }
   };
   
   return (
