@@ -28,12 +28,10 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
     if (selectionStart !== selectionEnd) {
       setSelection({ start: selectionStart, end: selectionEnd });
       
-      const text = textarea.value.substring(0, selectionStart);
       const preSelectionText = textarea.value.substring(0, selectionStart);
       const selectionText = textarea.value.substring(selectionStart, selectionEnd);
 
       const tempDiv = document.createElement('div');
-      // Copy relevant styles from the textarea
       const style = getComputedStyle(textarea);
       ['font', 'lineHeight', 'padding', 'border', 'letterSpacing', 'wordSpacing'].forEach(prop => {
         tempDiv.style[prop as any] = style[prop as any];
@@ -59,7 +57,6 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
 
       document.body.removeChild(tempDiv);
       
-      // Position the button above the selection
       const top = rect.top - textareaRect.top + textarea.scrollTop - 32;
       const left = rect.left - textareaRect.left + textarea.scrollLeft;
 
@@ -91,7 +88,6 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
       backdropRef.current.scrollTop = textareaRef.current.scrollTop;
       backdropRef.current.scrollLeft = textareaRef.current.scrollLeft;
     }
-    // Recalculate button position on scroll
     if (selection) {
         handleSelect();
     }
@@ -103,7 +99,7 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
          <div
             ref={backdropRef}
             className="absolute inset-0 p-2 overflow-hidden pointer-events-none text-base md:text-sm whitespace-pre-wrap font-mono leading-relaxed tracking-wide"
-            dangerouslySetInnerHTML={{ __html: highlightedContent + '\n' }} // Add newline to ensure scroll height matches
+            dangerouslySetInnerHTML={{ __html: highlightedContent + '\n' }}
          />
       )}
       <Textarea
@@ -124,7 +120,7 @@ export function TemplateTextarea({ field, isTemplate, onMakeField }: TemplateTex
           className="absolute h-7 px-2"
           style={{ top: `${buttonPosition.top}px`, left: `${buttonPosition.left}px` }}
           onClick={handleMakeFieldClick}
-          onMouseDown={(e) => e.preventDefault()} // Prevents textarea from losing focus
+          onMouseDown={(e) => e.preventDefault()}
         >
           <Wand2 className="mr-1.5 h-3.5 w-3.5" />
           Make Field
