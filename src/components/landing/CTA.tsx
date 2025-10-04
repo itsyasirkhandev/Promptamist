@@ -1,11 +1,18 @@
+
+'use client';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { cn } from "@/lib/utils";
+
 
 export function CTA() {
+  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
+
   return (
-    <section className="py-16 sm:py-24 bg-primary/5">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} className="py-16 sm:py-24 bg-primary/5">
+      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up")}>
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-headline">
             Ready to Supercharge Your AI Workflow?

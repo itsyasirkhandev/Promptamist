@@ -1,9 +1,15 @@
+
+'use client';
 import Image from "next/image";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { cn } from "@/lib/utils";
 
 export function Solution() {
+  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
+
   return (
-    <section id="solution" className="py-16 sm:py-24 bg-background scroll-mt-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} id="solution" className="py-16 sm:py-24 bg-background scroll-mt-20">
+      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up")}>
         <div className="lg:grid lg:grid-cols-12 lg:gap-16 lg:items-center">
           <div className="lg:col-span-7">
             <div className="text-left">
@@ -18,7 +24,7 @@ export function Solution() {
               </p>
             </div>
           </div>
-          <div className="mt-10 lg:mt-0 lg:col-span-5">
+          <div className="mt-10 lg:mt-0 lg:col-span-5" style={{animationDelay: '200ms'}}>
              <Image
                 src="https://i.postimg.cc/cLZmPt1f/Promtamist-dashboard-page.png"
                 alt="Promptamist Dashboard"

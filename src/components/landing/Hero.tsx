@@ -1,12 +1,18 @@
+
+'use client';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Bot } from "lucide-react";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { cn } from "@/lib/utils";
 
 export function Hero() {
+  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
+
   return (
-    <section className="bg-background">
+    <section ref={ref} className="bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center">
+        <div className={cn("flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] text-center opacity-0", isIntersecting && "animate-in fade-in-up")}>
             <div className="mb-6">
                 <Bot className="h-16 w-16 text-primary" />
             </div>

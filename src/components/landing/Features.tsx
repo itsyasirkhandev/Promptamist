@@ -1,6 +1,10 @@
+
+'use client';
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Library, Wand2, Tags, Copy } from "lucide-react";
 import Image from "next/image";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { cn } from "@/lib/utils";
 
 const features = [
   {
@@ -26,9 +30,11 @@ const features = [
 ];
 
 export function Features() {
+  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
+
   return (
-    <section id="features" className="py-16 sm:py-24 bg-muted/50 scroll-mt-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} id="features" className="py-16 sm:py-24 bg-muted/50 scroll-mt-20">
+      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up")}>
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-headline">
             Everything You Need to Master Your Prompts
@@ -40,8 +46,8 @@ export function Features() {
 
         <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-center">
             <div className="grid gap-6 sm:grid-cols-2">
-                {features.map((feature) => (
-                    <Card key={feature.title}>
+                {features.map((feature, i) => (
+                    <Card key={feature.title} className="[--delay:0s]" style={{animationDelay: `calc(${i * 100}ms + var(--delay, 0s))`}}>
                         <CardHeader>
                             <div className="flex items-center gap-4">
                                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -54,7 +60,7 @@ export function Features() {
                     </Card>
                 ))}
             </div>
-            <div className="mt-10 lg:mt-0 order-first lg:order-last">
+            <div className="mt-10 lg:mt-0 order-first lg:order-last [--delay:400ms]">
                  <Image
                     src="https://i.postimg.cc/XYQwh2z7/promptamist-use-prompt-dialog.png"
                     alt="Use prompt template dialog"

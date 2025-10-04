@@ -1,5 +1,9 @@
+
+'use client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileQuestion, FolderClosed, Repeat } from "lucide-react";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { cn } from "@/lib/utils";
 
 const problems = [
   {
@@ -20,9 +24,11 @@ const problems = [
 ];
 
 export function Problem() {
+  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
+
   return (
-    <section id="problem" className="py-16 sm:py-24 bg-muted/50 scroll-mt-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} id="problem" className="py-16 sm:py-24 bg-muted/50 scroll-mt-20">
+      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up")}>
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-headline">
             Sound Familiar? The Prompt Trap.
@@ -32,8 +38,8 @@ export function Problem() {
           </p>
         </div>
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {problems.map((problem) => (
-            <Card key={problem.title} className="text-center">
+          {problems.map((problem, i) => (
+            <Card key={problem.title} className="text-center" style={{animationDelay: `${i * 150}ms`}}>
               <CardHeader>
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   {problem.icon}

@@ -1,5 +1,9 @@
+
+'use client';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { cn } from "@/lib/utils";
 
 const testimonials = [
   {
@@ -23,9 +27,11 @@ const testimonials = [
 ];
 
 export function Testimonials() {
+  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
+
   return (
-    <section id="testimonials" className="py-16 sm:py-24 bg-background scroll-mt-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section ref={ref} id="testimonials" className="py-16 sm:py-24 bg-background scroll-mt-20">
+      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up")}>
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-headline">
             Loved by AI Power Users
@@ -35,8 +41,8 @@ export function Testimonials() {
           </p>
         </div>
         <div className="mt-12 grid gap-8 sm:grid-cols-1 lg:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <Card key={testimonial.name} className="flex flex-col">
+          {testimonials.map((testimonial, i) => (
+            <Card key={testimonial.name} className="flex flex-col" style={{animationDelay: `${i * 150}ms`}}>
               <CardContent className="pt-6 flex-grow">
                 <p className="text-muted-foreground">"{testimonial.quote}"</p>
               </CardContent>
