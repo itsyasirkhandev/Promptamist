@@ -8,14 +8,22 @@ import { EmailSignInForm } from '@/components/auth/EmailSignInForm';
 import { EmailSignUpForm } from '@/components/auth/EmailSignUpForm';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { Separator } from '@/components/ui/separator';
+import { Bot } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AuthPage() {
   const [showSignUp, setShowSignUp] = useState(false);
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="mb-4 flex flex-col items-center justify-center gap-2">
+            <Link href="/" className="flex items-center gap-2 text-foreground">
+              <Bot className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold">Promptamist</span>
+            </Link>
+          </div>
           <CardTitle className="font-headline text-2xl">
             {showSignUp ? 'Create an Account' : 'Welcome Back'}
           </CardTitle>
