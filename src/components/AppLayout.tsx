@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bot } from 'lucide-react';
+import { Bot, LayoutDashboard } from 'lucide-react';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { ThemeToggle } from './ThemeToggle';
 import { useUser } from '@/firebase';
@@ -17,7 +17,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isLandingPage = LANDING_PATHS.includes(pathname);
 
   const renderHeaderContent = () => {
-    if (isLandingPage && !user) {
+    if (isLandingPage) {
         return (
             <>
                  <Link href="/" className="flex items-center space-x-2">
@@ -26,12 +26,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
                 <div className="flex items-center gap-2">
                     <ThemeToggle />
-                    <Button asChild variant="outline">
-                        <Link href="/auth">Sign In</Link>
-                    </Button>
-                    <Button asChild>
-                        <Link href="/auth">Get Started</Link>
-                    </Button>
+                    { user ? (
+                        <Button asChild>
+                            <Link href="/prompts">
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                Go to Dashboard
+                            </Link>
+                        </Button>
+                    ) : (
+                        <>
+                            <Button asChild variant="ghost">
+                                <Link href="/auth">Sign In</Link>
+                            </Button>
+                            <Button asChild>
+                                <Link href="/auth">Get Started</Link>
+                            </Button>
+                        </>
+                    )}
                 </div>
             </>
         )
@@ -52,7 +63,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     );
   };
   
-  const mainContent = isLandingPage && !user ? children : (
+  const mainContent = isLandingPage ? children : (
     <main className='container mx-auto max-w-7xl flex-grow px-4 py-6 sm:py-8'>
         {children}
     </main>
