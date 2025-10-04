@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Bot, LayoutDashboard } from 'lucide-react';
+import { Bot, LayoutDashboard, Menu } from 'lucide-react';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { ThemeToggle } from './ThemeToggle';
 import { useUser } from '@/firebase';
 import { Button } from './ui/button';
 import { usePathname } from 'next/navigation';
+import { Sheet, SheetContent, SheetClose, SheetTrigger } from './ui/sheet';
 
 const LANDING_PATHS = ['/'];
 
@@ -39,25 +40,80 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         ))}
                     </nav>
                  </div>
-                <div className="flex items-center gap-2">
-                    <ThemeToggle />
-                    { user ? (
-                        <Button asChild>
-                            <Link href="/prompts">
-                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                                Go to Dashboard
-                            </Link>
-                        </Button>
-                    ) : (
-                        <>
-                            <Button asChild variant="ghost">
-                                <Link href="/auth">Sign In</Link>
+                 <div className="flex items-center gap-2">
+                    <div className="hidden md:flex items-center gap-2">
+                      <ThemeToggle />
+                      { user ? (
+                          <Button asChild>
+                              <Link href="/prompts">
+                                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                                  Go to Dashboard
+                              </Link>
+                          </Button>
+                      ) : (
+                          <>
+                              <Button asChild variant="ghost">
+                                  <Link href="/auth">Sign In</Link>
+                              </Button>
+                              <Button asChild>
+                                  <Link href="/auth">Get Started</Link>
+                              </Button>
+                          </>
+                      )}
+                    </div>
+                    <div className="md:hidden">
+                       <Sheet>
+                          <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Menu className="h-6 w-6" />
+                              <span className="sr-only">Toggle navigation menu</span>
                             </Button>
-                            <Button asChild>
-                                <Link href="/auth">Get Started</Link>
-                            </Button>
-                        </>
-                    )}
+                          </SheetTrigger>
+                          <SheetContent side="left">
+                            <div className="flex flex-col gap-6 p-6">
+                               <Link href="/" className="flex items-center space-x-2">
+                                  <Bot className="h-6 w-6 text-primary" />
+                                  <span className="font-bold inline-block">Promptamist</span>
+                              </Link>
+                              <nav className="flex flex-col gap-4">
+                                {NAV_LINKS.map(link => (
+                                  <SheetClose asChild key={link.href}>
+                                    <Link href={link.href} className="text-lg text-muted-foreground hover:text-foreground transition-colors">
+                                        {link.label}
+                                    </Link>
+                                  </SheetClose>
+                                ))}
+                              </nav>
+                              <div className="border-t pt-6 flex flex-col gap-4">
+                                { user ? (
+                                    <SheetClose asChild>
+                                      <Button asChild size="lg">
+                                          <Link href="/prompts">
+                                              <LayoutDashboard className="mr-2 h-4 w-4" />
+                                              Go to Dashboard
+                                          </Link>
+                                      </Button>
+                                    </SheetClose>
+                                ) : (
+                                    <>
+                                        <SheetClose asChild>
+                                          <Button asChild variant="outline" size="lg">
+                                              <Link href="/auth">Sign In</Link>
+                                          </Button>
+                                        </SheetClose>
+                                        <SheetClose asChild>
+                                          <Button asChild size="lg">
+                                              <Link href="/auth">Get Started</Link>
+                                          </Button>
+                                        </SheetClose>
+                                    </>
+                                )}
+                                <ThemeToggle />
+                              </div>
+                            </div>
+                          </SheetContent>
+                        </Sheet>
+                    </div>
                 </div>
             </div>
         )
