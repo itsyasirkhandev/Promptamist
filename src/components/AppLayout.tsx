@@ -7,7 +7,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useUser } from '@/firebase';
 import { Button } from './ui/button';
 import { usePathname } from 'next/navigation';
-import { Sheet, SheetContent, SheetClose, SheetTrigger } from './ui/sheet';
+import { Sheet, SheetContent, SheetClose, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
 
 const LANDING_PATHS = ['/'];
 
@@ -69,8 +69,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                               <span className="sr-only">Toggle navigation menu</span>
                             </Button>
                           </SheetTrigger>
-                          <SheetContent side="left">
-                            <div className="flex flex-col gap-6 p-6">
+                          <SheetContent side="left" className="pr-0">
+                            <SheetHeader className="p-6 text-left">
+                                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                                <SheetDescription className="sr-only">Main navigation links for the landing page.</SheetDescription>
+                            </SheetHeader>
+                            <div className="flex flex-col gap-6 p-6 pt-0">
                                <Link href="/" className="flex items-center space-x-2">
                                   <Bot className="h-6 w-6 text-primary" />
                                   <span className="font-bold inline-block">Promptamist</span>
