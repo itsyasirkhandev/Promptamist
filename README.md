@@ -19,6 +19,17 @@ Promptamist is a powerful and intuitive application designed to help you craft, 
 - **Responsive Design**: A clean, modern, and fully responsive UI that works beautifully on desktop and mobile devices.
 - **Dark & Light Mode**: Switch between themes to suit your preference.
 
+## Screenshots
+
+| Dashboard | Use Template Dialog |
+| :---: | :---: |
+| ![Promptamist Dashboard](https://i.postimg.cc/cLZmPt1f/Promtamist-dashboard-page.png) | ![Promptamist Use Template Dialog](https://i.postimg.cc/XYQwh2z7/promptamist-use-prompt-dialog.png) |
+
+| Create a New Prompt | Creating a Prompt Template |
+| :---: | :---: |
+| ![Promptamist Create Prompt](https://i.postimg.cc/3JZp4S70/promptamist-Prompt-Creation.png) | ![Promptamist Creating Prompt Template](https://i.postimg.cc/pXP5Hf8t/Promptamist-Creating-Prompt-Templates.png) |
+
+
 ## Tech Stack
 
 - **Framework**: Next.js (App Router)
