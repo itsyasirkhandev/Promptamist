@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AppLayout } from "@/components/AppLayout";
 
 
 function EmptyState({ onClear, isFiltered }: { onClear: () => void; isFiltered: boolean }) {
@@ -101,72 +102,74 @@ export default function PromptsPage() {
   const hasActiveFilter = searchTerm !== "" || selectedTag !== null;
 
   return (
-    <div className="container mx-auto">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-        <div>
-            <h1 className="font-headline text-3xl font-bold tracking-tight">
-                Prompt Library
-            </h1>
-            <p className="text-muted-foreground mt-1">Your central hub for crafting and managing AI prompts.</p>
-        </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/create">
-            <FilePlus className="mr-2 h-4 w-4" />
-            New Prompt
-          </Link>
-        </Button>
-      </div>
-
-       {(isLoaded && prompts.length > 0) || hasActiveFilter ? (
-        <div className="mb-8 space-y-4">
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                    type="text"
-                    placeholder="Search prompts by title or content..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-full"
-                />
+    <AppLayout>
+      <div className="container mx-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 className="font-headline text-3xl font-bold tracking-tight">
+                    Prompt Library
+                </h1>
+                <p className="text-muted-foreground mt-1">Your central hub for crafting and managing AI prompts.</p>
             </div>
-            {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-                {allTags.map((tag) => (
-                <Button
-                    key={tag}
-                    variant={selectedTag === tag ? "default" : "outline"}
-                    onClick={() => handleTagClick(tag)}
-                    size="sm"
-                    className="rounded-full"
-                >
-                    {tag}
-                    {selectedTag === tag && <X className="ml-1.5 h-3 w-3" />}
-                </Button>
-                ))}
-            </div>
-            )}
+            <Button asChild className="w-full sm:w-auto">
+              <Link href="/create">
+                <FilePlus className="mr-2 h-4 w-4" />
+                New Prompt
+              </Link>
+            </Button>
         </div>
-       ) : null}
 
-      {!isLoaded ? (
-        renderSkeletons()
-      ) : filteredPrompts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredPrompts.map((prompt) => (
-            <PromptCard key={prompt.id} prompt={prompt} />
-          ))}
+        {(isLoaded && prompts.length > 0) || hasActiveFilter ? (
+          <div className="mb-8 space-y-4">
+              <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                      type="text"
+                      placeholder="Search prompts by title or content..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 w-full"
+                  />
+              </div>
+              {allTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                  {allTags.map((tag) => (
+                  <Button
+                      key={tag}
+                      variant={selectedTag === tag ? "default" : "outline"}
+                      onClick={() => handleTagClick(tag)}
+                      size="sm"
+                      className="rounded-full"
+                  >
+                      {tag}
+                      {selectedTag === tag && <X className="ml-1.5 h-3 w-3" />}
+                  </Button>
+                  ))}
+              </div>
+              )}
+          </div>
+        ) : null}
+
+        {!isLoaded ? (
+          renderSkeletons()
+        ) : filteredPrompts.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredPrompts.map((prompt) => (
+              <PromptCard key={prompt.id} prompt={prompt} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState onClear={clearFilters} isFiltered={hasActiveFilter} />
+        )}
+        
+        <div className="fixed bottom-4 right-4 sm:hidden">
+          <Button asChild size="icon" className="h-14 w-14 rounded-full shadow-lg">
+              <Link href="/create" aria-label="Create new prompt">
+                <FilePlus className="h-6 w-6" />
+              </Link>
+          </Button>
         </div>
-      ) : (
-        <EmptyState onClear={clearFilters} isFiltered={hasActiveFilter} />
-      )}
-      
-      <div className="fixed bottom-4 right-4 sm:hidden">
-         <Button asChild size="icon" className="h-14 w-14 rounded-full shadow-lg">
-            <Link href="/create" aria-label="Create new prompt">
-              <FilePlus className="h-6 w-6" />
-            </Link>
-         </Button>
       </div>
-    </div>
+    </AppLayout>
   );
 }
