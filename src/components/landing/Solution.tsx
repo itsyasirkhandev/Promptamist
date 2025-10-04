@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function Solution() {
   return (
-    <section className="py-16 sm:py-24 bg-background">
+    <section id="solution" className="py-16 sm:py-24 bg-background scroll-mt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-12 lg:gap-16 lg:items-center">
           <div className="lg:col-span-7">

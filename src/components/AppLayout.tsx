@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -11,6 +10,13 @@ import { usePathname } from 'next/navigation';
 
 const LANDING_PATHS = ['/'];
 
+const NAV_LINKS = [
+  { href: '#problem', label: 'Problem' },
+  { href: '#solution', label: 'Solution' },
+  { href: '#features', label: 'Features' },
+  { href: '#testimonials', label: 'Testimonials' },
+];
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const pathname = usePathname();
@@ -19,11 +25,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const renderHeaderContent = () => {
     if (isLandingPage) {
         return (
-            <>
-                 <Link href="/" className="flex items-center space-x-2">
-                    <Bot className="h-6 w-6 text-primary" />
-                    <span className="font-bold inline-block">Promptamist</span>
-                </Link>
+            <div className="flex w-full items-center justify-between">
+                 <div className="flex items-center gap-6">
+                    <Link href="/" className="flex items-center space-x-2">
+                        <Bot className="h-6 w-6 text-primary" />
+                        <span className="font-bold inline-block">Promptamist</span>
+                    </Link>
+                    <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
+                        {NAV_LINKS.map(link => (
+                            <Link key={link.href} href={link.href} className="text-muted-foreground hover:text-foreground transition-colors">
+                                {link.label}
+                            </Link>
+                        ))}
+                    </nav>
+                 </div>
                 <div className="flex items-center gap-2">
                     <ThemeToggle />
                     { user ? (
@@ -44,7 +59,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         </>
                     )}
                 </div>
-            </>
+            </div>
         )
     }
 
