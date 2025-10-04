@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useForm, Control, useWatch } from 'react-hook-form';
+import { useForm, Control, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
@@ -53,6 +54,17 @@ function generateSchemaAndDefaults(fields: PromptField[]) {
                     defaults[field.name] = '';
                 }
                 break;
+            case 'list':
+                if (field.options && field.options.length > 0) {
+                    schema = z.array(z.string()).refine(value => value.length > 0, {
+                        message: `Please select at least one ${field.name}.`
+                    });
+                    defaults[field.name] = [];
+                } else {
+                    schema = z.string().min(1, `${field.name} is required.`);
+                    defaults[field.name] = '';
+                }
+                break;
             case 'textarea':
                 schema = z.string().min(1, `${field.name} is required.`).max(3000);
                 defaults[field.name] = '';
@@ -74,7 +86,12 @@ const generatePromptString = (template: string, formValues: Record<string, any>)
     for (const key in formValues) {
         const value = formValues[key];
         const placeholder = new RegExp(`{{${key}}}`, 'g');
-        let replacement = String(value ?? '');
+        let replacement = '';
+        if (Array.isArray(value)) {
+            replacement = value.join(', ');
+        } else {
+            replacement = String(value ?? '');
+        }
 
         if (value) { 
             result = result.replace(placeholder, replacement);
@@ -110,9 +127,16 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
             if (match) {
                 const fieldName = match[1].trim();
                 const fieldValue = formValues[fieldName];
+                let displayValue = "";
 
-                if (fieldValue) {
-                    return <span key={index} className="bg-primary/20 text-primary rounded-sm px-1">{String(fieldValue)}</span>;
+                if (Array.isArray(fieldValue)) {
+                    displayValue = fieldValue.join(', ');
+                } else {
+                    displayValue = String(fieldValue || '');
+                }
+
+                if (displayValue) {
+                    return <span key={index} className="bg-primary/20 text-primary rounded-sm px-1">{String(displayValue)}</span>;
                 }
                 return <span key={index} className="bg-muted text-muted-foreground rounded-sm px-1">{part}</span>;
             }
@@ -168,6 +192,36 @@ function TemplateFields({ control, prompt, form, onPaste }: { control: Control<a
                                                 {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
+                                    ) : field.type === 'list' && field.options ? (
+                                        <div className="space-y-2 rounded-md border p-4">
+                                            {field.options.map(option => (
+                                                <Controller
+                                                    key={option}
+                                                    control={control}
+                                                    name={field.name}
+                                                    render={({ field: checkboxField }) => (
+                                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                    checked={checkboxField.value?.includes(option)}
+                                                                    onCheckedChange={(checked) => {
+                                                                        const currentValue = checkboxField.value || [];
+                                                                        if (checked) {
+                                                                            checkboxField.onChange([...currentValue, option]);
+                                                                        } else {
+                                                                            checkboxField.onChange(currentValue.filter((v: string) => v !== option));
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal">
+                                                                {option}
+                                                            </FormLabel>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
                                     ) : (
                                         <>
                                             <Input type={field.type} {...formField} value={formField.value ?? ''} className="pr-20" maxLength={100} />
@@ -274,7 +328,7 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
         <div className="flex flex-col gap-4 min-h-0">
             <h3 className="text-lg font-semibold flex-shrink-0">Template Fields</h3>
             <ScrollArea className="flex-1">
-                <div className="pr-6 pl-1">
+                <div className="pr-6 pl-1 py-1">
                     <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
                 </div>
             </ScrollArea>
@@ -341,4 +395,3 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     </>
   );
 }
-

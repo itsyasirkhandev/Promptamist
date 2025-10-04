@@ -15,7 +15,7 @@ import type { PromptField, PromptFieldType } from "@/lib/types";
 
 const fieldSchema = z.object({
   name: z.string().min(1, "Field name is required."),
-  type: z.enum(["text", "textarea", "number", "choices"]),
+  type: z.enum(["text", "textarea", "number", "choices", "list"]),
   options: z.array(z.object({ value: z.string().min(1, "Option cannot be empty.").max(100, "Option cannot exceed 100 characters.") })).optional(),
 });
 
@@ -62,7 +62,7 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
       id: existingField?.id || new Date().toISOString(),
       name: values.name,
       type: values.type as PromptFieldType,
-      options: values.type === 'choices' ? values.options?.map(o => o.value) : undefined,
+      options: ['choices', 'list'].includes(values.type) ? values.options?.map(o => o.value) : undefined,
     };
     onAddField(newField);
     onClose();
@@ -113,14 +113,15 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
                       <SelectItem value="text">Text</SelectItem>
                       <SelectItem value="textarea">Textarea</SelectItem>
                       <SelectItem value="number">Number</SelectItem>
-                      <SelectItem value="choices">Choices</SelectItem>
+                      <SelectItem value="choices">Choices (Single Select)</SelectItem>
+                      <SelectItem value="list">List (Multi-select)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {selectedType === "choices" && (
+            {(selectedType === "choices" || selectedType === "list") && (
               <div className="space-y-2">
                 <FormLabel>Options</FormLabel>
                 {fields.map((field, index) => (
@@ -168,5 +169,3 @@ export function CreateFieldDialog({ isOpen, onClose, onAddField, existingField }
     </Dialog>
   );
 }
-
-    

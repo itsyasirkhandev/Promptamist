@@ -1,6 +1,6 @@
 import type { Timestamp } from 'firebase/firestore';
 
-export type PromptFieldType = 'text' | 'textarea' | 'number' | 'choices';
+export type PromptFieldType = 'text' | 'textarea' | 'number' | 'choices' | 'list';
 
 export type PromptField = {
   id: string;

@@ -267,8 +267,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
       fields: values.isTemplate
         ? values.fields.map(f => {
             const field: Partial<PromptField> = { ...f };
-            // This is a workaround to avoid Firestore error with undefined field values.
-            if (field.type !== 'choices' || !field.options || field.options.length === 0) {
+            if (!['choices', 'list'].includes(field.type!) || !field.options || field.options.length === 0) {
               delete field.options;
             }
             return field as PromptField;
