@@ -154,7 +154,7 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
                 </Button>
             </div>
             <ScrollArea className="flex-1">
-                <div className="text-sm prose prose-sm dark:prose-invert max-w-full whitespace-pre-wrap p-4">
+                <div className="prose prose-sm dark:prose-invert max-w-full whitespace-pre-wrap p-4 text-sm">
                     {renderedPreview}
                 </div>
             </ScrollArea>
@@ -165,7 +165,7 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
 function TemplateFields({ control, prompt, form, onPaste }: { control: Control<any>, prompt: Prompt, form: any, onPaste: (fieldName: string) => void }) {
     return (
         <Form {...form}>
-            <form className="space-y-4" key={prompt.id}>
+            <form className="space-y-4 pr-1" key={prompt.id}>
                 {(prompt.fields || []).map((field) => (
                     <FormField
                         key={field.id}
@@ -324,24 +324,24 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     }
 
   const renderDesktopLayout = () => (
-    <div className="grid flex-1 grid-cols-1 md:grid-cols-2 gap-6 p-6 min-h-0">
-        <div className="flex flex-col gap-4 min-h-0">
+     <div className="grid flex-1 grid-cols-2 gap-6 p-6 overflow-hidden">
+        <div className="flex flex-col gap-4 overflow-hidden">
             <h3 className="text-lg font-semibold flex-shrink-0">Template Fields</h3>
             <ScrollArea className="flex-1">
-                <div className="pr-6 pl-1 py-1">
+                <div className="pr-5">
                     <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
                 </div>
             </ScrollArea>
         </div>
-        <div className="flex flex-col min-h-0">
-            <LivePreview control={form.control} template={prompt.content} />
+        <div className="flex flex-col overflow-hidden">
+             <LivePreview control={form.control} template={prompt.content} />
         </div>
     </div>
   );
 
   const renderMobileLayout = () => (
     <Tabs defaultValue="fields" className="flex-1 min-h-0 flex flex-col">
-      <div className="px-6">
+      <div className="px-6 pt-6">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="fields">Fields</TabsTrigger>
             <TabsTrigger value="preview">Preview</TabsTrigger>
@@ -354,8 +354,8 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
             </div>
         </ScrollArea>
       </TabsContent>
-      <TabsContent value="preview" className="flex-1 min-h-0">
-        <div className="h-full p-6 flex flex-col">
+      <TabsContent value="preview" className="flex-1 min-h-0 pb-6">
+        <div className="h-full px-6 flex flex-col">
             <LivePreview control={form.control} template={prompt.content} />
         </div>
       </TabsContent>
@@ -366,14 +366,14 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="flex-shrink-0 p-6 pb-4 border-b">
+        <DialogHeader className="flex-shrink-0 p-6 pb-0 border-b">
           <DialogTitle>Use Template: {prompt.title}</DialogTitle>
-          <DialogDescription>Fill in the fields to generate a new prompt from this template.</DialogDescription>
+          <DialogDescription className="pb-4">Fill in the fields to generate a new prompt from this template.</DialogDescription>
         </DialogHeader>
         
         {isMobile ? renderMobileLayout() : renderDesktopLayout()}
 
-         <DialogFooter className="flex-shrink-0 p-6 pt-4 border-t">
+         <DialogFooter className="flex-shrink-0 p-6 border-t">
             <Button onClick={handleSaveClick} disabled={!form.formState.isValid}>
                 <Save className="mr-2 h-4 w-4" />
                 Save New Prompt
@@ -395,3 +395,5 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     </>
   );
 }
+
+    

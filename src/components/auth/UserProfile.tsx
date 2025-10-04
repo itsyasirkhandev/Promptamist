@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAuth, useUser } from '@/firebase';
@@ -25,7 +26,7 @@ export function UserProfile() {
   };
 
   if (!isLoaded) {
-    return <Skeleton className="h-10 w-full" />;
+    return <Skeleton className="h-10 w-24" />;
   }
 
   if (!user) {
@@ -43,12 +44,12 @@ export function UserProfile() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-auto w-full justify-start px-2 space-x-2">
+        <Button variant="ghost" className="relative h-auto w-full justify-start p-1 sm:px-2 space-x-2">
            <Avatar className="h-8 w-8">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
             <AvatarFallback>{getInitials(user.displayName || user.email)}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col items-start group-data-[collapsible=offcanvas]:hidden group-data-[collapsible=icon]:hidden">
+          <div className="hidden sm:flex flex-col items-start group-data-[collapsible=offcanvas]:hidden group-data-[collapsible=icon]:hidden">
             <span className="text-xs font-semibold text-foreground">{user.displayName || 'User'}</span>
             <span className="text-xs text-muted-foreground">{user.email}</span>
           </div>
@@ -73,3 +74,5 @@ export function UserProfile() {
     </DropdownMenu>
   );
 }
+
+    

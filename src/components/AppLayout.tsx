@@ -20,7 +20,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <span className="font-bold inline-block">Promptamist</span>
         </Link>
         {pathname !== '/auth' && (
-           <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2 sm:gap-4">
             <UserProfile />
             <ThemeToggle />
           </div>
@@ -38,3 +38,5 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+    
