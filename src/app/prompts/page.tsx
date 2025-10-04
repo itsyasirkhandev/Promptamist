@@ -103,7 +103,6 @@ export default function PromptsPage() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div>
                 <h1 className="font-headline text-3xl font-bold tracking-tight">
@@ -169,7 +168,6 @@ export default function PromptsPage() {
               </Link>
           </Button>
         </div>
-      </div>
     </AppLayout>
   );
 }

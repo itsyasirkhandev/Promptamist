@@ -53,7 +53,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
   
   const mainContent = isLandingPage && !user ? children : (
-    <main className='flex-grow py-6 sm:py-8'>
+    <main className='container mx-auto max-w-7xl flex-grow py-6 sm:py-8'>
         {children}
     </main>
   );
