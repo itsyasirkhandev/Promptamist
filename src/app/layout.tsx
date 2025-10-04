@@ -71,7 +71,7 @@ export default function RootLayout({
         >
           <FirebaseClientProvider>
             <AppLayout>
-                <AuthStateGate>{children}</AuthStateGate>
+              <AuthStateGate>{children}</AuthStateGate>
             </AppLayout>
             <Toaster />
           </FirebaseClientProvider>

@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
 const LANDING_PATHS = ['/'];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, isLoaded } = useUser();
+  const { user } = useUser();
   const pathname = usePathname();
   const isLandingPage = LANDING_PATHS.includes(pathname);
 
@@ -53,15 +53,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
   
   const mainContent = isLandingPage && !user ? children : (
-    <main className='flex-grow container mx-auto p-4 sm:p-6 md:p-8'>
+    <main className='flex-grow py-6 sm:py-8'>
         {children}
     </main>
   );
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-sm p-4 border-b'>
-        <div className="container mx-auto flex justify-between items-center">
+      <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b'>
+        <div className="container mx-auto flex justify-between items-center py-3">
             {renderHeaderContent()}
         </div>
       </header>

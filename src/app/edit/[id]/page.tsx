@@ -9,7 +9,6 @@ import { usePrompts } from '@/hooks/use-prompts';
 import { CreatePromptForm } from '@/components/CreatePromptForm';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AppLayout } from '@/components/AppLayout';
 
 export default function EditPromptPage() {
   const router = useRouter();
@@ -21,36 +20,31 @@ export default function EditPromptPage() {
 
   if (!isLoaded) {
     return (
-        <AppLayout>
-            <div className="container mx-auto max-w-6xl">
-                <Skeleton className="h-8 w-32 mb-4" />
-                <Skeleton className="h-10 w-48 mb-2" />
-                <Skeleton className="h-6 w-full max-w-md mb-8" />
-                <Skeleton className="h-[500px] w-full" />
-            </div>
-        </AppLayout>
+        <div className="container mx-auto max-w-6xl">
+            <Skeleton className="h-8 w-32 mb-4" />
+            <Skeleton className="h-10 w-48 mb-2" />
+            <Skeleton className="h-6 w-full max-w-md mb-8" />
+            <Skeleton className="h-[500px] w-full" />
+        </div>
     );
   }
 
   if (isLoaded && !prompt) {
     return (
-        <AppLayout>
-            <div className="container mx-auto max-w-2xl text-center">
-                <h1 className="font-headline text-2xl font-bold">Prompt not found</h1>
-                <p className="mt-2 mb-4 text-muted-foreground">The prompt you are looking for does not exist or has been deleted.</p>
-                <Button asChild>
-                    <Link href="/prompts">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Library
-                    </Link>
-                </Button>
-            </div>
-        </AppLayout>
+        <div className="container mx-auto max-w-2xl text-center">
+            <h1 className="font-headline text-2xl font-bold">Prompt not found</h1>
+            <p className="mt-2 mb-4 text-muted-foreground">The prompt you are looking for does not exist or has been deleted.</p>
+            <Button asChild>
+                <Link href="/prompts">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Library
+                </Link>
+            </Button>
+        </div>
     );
   }
 
   return (
-    <AppLayout>
     <div className="container mx-auto max-w-6xl">
       <div className="mb-8">
         <Button asChild variant="ghost" className="mb-4 pl-0">
@@ -74,6 +68,5 @@ export default function EditPromptPage() {
         </div>
       )}
     </div>
-    </AppLayout>
   );
 }

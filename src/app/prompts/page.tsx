@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { AppLayout } from "@/components/AppLayout";
 
 
 function EmptyState({ onClear, isFiltered }: { onClear: () => void; isFiltered: boolean }) {
@@ -102,7 +101,6 @@ export default function PromptsPage() {
   const hasActiveFilter = searchTerm !== "" || selectedTag !== null;
 
   return (
-    <AppLayout>
     <div className="container mx-auto">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
@@ -170,6 +168,5 @@ export default function PromptsPage() {
          </Button>
       </div>
     </div>
-    </AppLayout>
   );
 }
