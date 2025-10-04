@@ -165,7 +165,7 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
 function TemplateFields({ control, prompt, form, onPaste }: { control: Control<any>, prompt: Prompt, form: any, onPaste: (fieldName: string) => void }) {
     return (
         <Form {...form}>
-            <form className="space-y-4 pr-1" key={prompt.id}>
+            <form className="space-y-4" key={prompt.id}>
                 {(prompt.fields || []).map((field) => (
                     <FormField
                         key={field.id}
@@ -328,7 +328,7 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
         <div className="flex flex-col gap-4 overflow-hidden">
             <h3 className="text-lg font-semibold flex-shrink-0">Template Fields</h3>
             <ScrollArea className="flex-1">
-                <div className="pr-5">
+                <div className="pr-6 pl-1 py-1">
                     <TemplateFields control={form.control} prompt={prompt} form={form} onPaste={handlePaste} />
                 </div>
             </ScrollArea>
@@ -395,5 +395,3 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     </>
   );
 }
-
-    
