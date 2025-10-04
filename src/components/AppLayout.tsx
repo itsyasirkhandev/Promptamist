@@ -53,7 +53,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
   
   const mainContent = isLandingPage && !user ? children : (
-    <main className='container mx-auto max-w-7xl flex-grow py-6 sm:py-8'>
+    <main className='container mx-auto max-w-7xl flex-grow px-4 py-6 sm:py-8'>
         {children}
     </main>
   );
@@ -61,7 +61,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">
       <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b'>
-        <div className="container mx-auto flex justify-between items-center py-3">
+        <div className="container mx-auto flex justify-between items-center p-3">
             {renderHeaderContent()}
         </div>
       </header>
