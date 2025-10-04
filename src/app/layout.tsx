@@ -70,7 +70,9 @@ export default function RootLayout({
           enableSystem
         >
           <FirebaseClientProvider>
-            <AppLayout>{children}</AppLayout>
+            <AppLayout>
+                <AuthStateGate>{children}</AuthStateGate>
+            </AppLayout>
             <Toaster />
           </FirebaseClientProvider>
         </ThemeProvider>

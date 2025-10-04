@@ -1,42 +1,71 @@
 
 'use client';
 
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Bot } from 'lucide-react';
 import { UserProfile } from '@/components/auth/UserProfile';
-import { AuthStateGate } from '@/components/auth/AuthStateGate';
 import { ThemeToggle } from './ThemeToggle';
-import { Separator } from './ui/separator';
+import { useUser } from '@/firebase';
+import { Button } from './ui/button';
+import { usePathname } from 'next/navigation';
+
+const LANDING_PATHS = ['/'];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, isLoaded } = useUser();
   const pathname = usePathname();
+  const isLandingPage = LANDING_PATHS.includes(pathname);
 
-  const renderHeader = () => (
-    <header className="p-4 border-b">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-2">
-          <Bot className="h-6 w-6 text-primary" />
-          <span className="font-bold inline-block">Promptamist</span>
-        </Link>
-        {pathname !== '/auth' && (
-           <div className="flex items-center gap-2 sm:gap-4">
-            <UserProfile />
-            <ThemeToggle />
-          </div>
-        )}
-      </div>
-    </header>
+  const renderHeaderContent = () => {
+    if (isLandingPage && !user) {
+        return (
+            <>
+                 <Link href="/" className="flex items-center space-x-2">
+                    <Bot className="h-6 w-6 text-primary" />
+                    <span className="font-bold inline-block">Promptamist</span>
+                </Link>
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <Button asChild variant="outline">
+                        <Link href="/auth">Sign In</Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href="/auth">Get Started</Link>
+                    </Button>
+                </div>
+            </>
+        )
+    }
+
+    return (
+        <>
+            <Link href={user ? "/prompts" : "/"} className="flex items-center space-x-2">
+                <Bot className="h-6 w-6 text-primary" />
+                <span className="font-bold inline-block">Promptamist</span>
+            </Link>
+            
+            <div className="flex items-center gap-2 sm:gap-4">
+                <UserProfile />
+                <ThemeToggle />
+            </div>
+        </>
+    );
+  };
+  
+  const mainContent = isLandingPage && !user ? children : (
+    <main className='flex-grow container mx-auto p-4 sm:p-6 md:p-8'>
+        {children}
+    </main>
   );
 
   return (
     <div className="flex flex-col min-h-screen">
-      {renderHeader()}
-      <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8">
-        <AuthStateGate>{children}</AuthStateGate>
-      </main>
+      <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-sm p-4 border-b'>
+        <div className="container mx-auto flex justify-between items-center">
+            {renderHeaderContent()}
+        </div>
+      </header>
+      {mainContent}
     </div>
   );
 }
-
-    

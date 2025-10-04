@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -289,7 +288,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
         });
     }
 
-    router.push("/");
+    router.push("/prompts");
   }
 
   return (
