@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -66,7 +65,7 @@ function generateSchemaAndDefaults(fields: PromptField[]) {
                 }
                 break;
             case 'textarea':
-                schema = z.string().min(1, `${field.name} is required.`).max(3000);
+                schema = z.string().min(1, `${field.name} is required.`).max(10000);
                 defaults[field.name] = '';
                 break;
             case 'text':
@@ -178,9 +177,9 @@ function TemplateFields({ control, prompt, form, onPaste }: { control: Control<a
                                     <div className="relative">
                                     {field.type === 'textarea' ? (
                                         <>
-                                            <Textarea {...formField} value={formField.value ?? ''} className="pr-20" maxLength={3000}/>
+                                            <Textarea {...formField} value={formField.value ?? ''} className="pr-20" maxLength={10000}/>
                                             <div className="absolute bottom-2 right-12 text-xs text-muted-foreground">
-                                                {(formField.value ?? '').length}/3000
+                                                {(formField.value ?? '').length}/10000
                                             </div>
                                         </>
                                     ) : field.type === 'choices' && field.options ? (

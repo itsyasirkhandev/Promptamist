@@ -31,7 +31,7 @@ import { ContentEditable } from "./ContentEditable";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title cannot exceed 100 characters."),
-  content: z.string().min(10, "Prompt content must be at least 10 characters.").max(5000, "Content cannot exceed 5000 characters."),
+  content: z.string().min(10, "Prompt content must be at least 10 characters.").max(10000, "Content cannot exceed 10000 characters."),
   tags: z.array(z.string().min(1, "Tag cannot be empty.").max(30, "Tag cannot exceed 30 characters.")).max(10, "You can add up to 10 tags.").optional().default([]),
   isTemplate: z.boolean().default(false),
   fields: z.array(z.custom<PromptField>()).default([]),
@@ -362,7 +362,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                                     className="min-h-[300px] pr-16"
                                                 />
                                                 <div className="absolute bottom-2 right-3 text-xs text-muted-foreground">
-                                                    {field.value.length}/5000
+                                                    {field.value.length}/10000
                                                 </div>
                                             </div>
                                         </FormControl>

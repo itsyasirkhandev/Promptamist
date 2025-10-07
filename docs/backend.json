@@ -44,7 +44,7 @@
                 "content": {
                     "type": "string",
                     "description": "The content of the prompt.",
-                    "maxLength": 5000
+                    "maxLength": 10000
                 },
                 "tags": {
                     "type": "array",
@@ -82,5 +82,4 @@
         }
     }
 }
-
     
