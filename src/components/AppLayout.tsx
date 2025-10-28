@@ -17,7 +17,6 @@ const NAV_LINKS = [
   { href: '#problem', label: 'Problem' },
   { href: '#solution', label: 'Solution' },
   { href: '#features', label: 'Features' },
-  { href: '#testimonials', label: 'Testimonials' },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
