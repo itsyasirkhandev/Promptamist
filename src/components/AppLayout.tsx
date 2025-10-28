@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -8,6 +9,7 @@ import { useUser } from '@/firebase';
 import { Button } from './ui/button';
 import { usePathname } from 'next/navigation';
 import { Sheet, SheetContent, SheetClose, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
+import { Skeleton } from './ui/skeleton';
 
 const LANDING_PATHS = ['/'];
 
@@ -19,7 +21,7 @@ const NAV_LINKS = [
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const pathname = usePathname();
   const isLandingPage = LANDING_PATHS.includes(pathname);
 
@@ -43,7 +45,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                  <div className="flex items-center gap-2">
                     <div className="hidden md:flex items-center gap-2">
                       <ThemeToggle />
-                      { user ? (
+                      { !isLoaded ? (
+                          <Skeleton className="h-10 w-48" />
+                      ) : user ? (
                           <Button asChild>
                               <Link href="/prompts">
                                   <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -89,7 +93,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 ))}
                               </nav>
                               <div className="border-t pt-6 flex flex-col gap-4">
-                                { user ? (
+                                { !isLoaded ? (
+                                    <Skeleton className="h-10 w-full" />
+                                ) : user ? (
                                     <SheetClose asChild>
                                       <Button asChild size="lg">
                                           <Link href="/prompts">
@@ -143,6 +149,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
     </main>
   );
+  
+  const renderFooter = () => {
+    if (isLandingPage) {
+      const { Footer } = require('@/components/landing/Footer');
+      return <Footer />;
+    }
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -152,6 +166,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       {mainContent}
+      {renderFooter()}
     </div>
   );
 }
