@@ -118,7 +118,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                         </SheetClose>
                                     </>
                                 )}
-                                <ThemeToggle />
+                                <div className="self-center">
+                                    <ThemeToggle />
+                                </div>
                               </div>
                             </div>
                           </SheetContent>
@@ -145,19 +147,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
   
   const mainContent = isLandingPage ? children : (
-    <main className='container mx-auto max-w-7xl flex-grow px-4 py-6 sm:py-8'>
+    <main className='container mx-auto flex-grow px-4 py-6 sm:py-8'>
         {children}
     </main>
   );
   
-  const renderFooter = () => {
-    if (isLandingPage) {
-      const { Footer } = require('@/components/landing/Footer');
-      return <Footer />;
-    }
-    return null;
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b'>
@@ -166,7 +160,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       {mainContent}
-      {renderFooter()}
     </div>
   );
 }
