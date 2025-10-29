@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -5,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2, Wand2, ClipboardPaste } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2, Wand2, ClipboardPaste, GripVertical } from "lucide-react";
 import { Menu, Item, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 
@@ -28,6 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import type { Prompt, PromptField } from "@/lib/types";
 import { CreateFieldDialog } from "./CreateFieldDialog";
 import { ContentEditable } from "./ContentEditable";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title cannot exceed 100 characters."),
@@ -53,6 +55,9 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   const [editingField, setEditingField] = useState<PromptField | null>(null);
   const [selection, setSelection] = useState<Range | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<number | null>(null);
 
   const { show } = useContextMenu({ id: CONTEXT_MENU_ID });
 
@@ -291,6 +296,43 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     router.push("/prompts");
   }
 
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    if (draggedItem === null || draggedItem === index) return;
+    setDragOverItem(index);
+    e.dataTransfer.dropEffect = 'move';
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (draggedItem === null || dragOverItem === null || draggedItem === dragOverItem) {
+        setDraggedItem(null);
+        setDragOverItem(null);
+        return;
+    };
+
+    const currentFields = form.getValues('fields');
+    const newFields = [...currentFields];
+    const [reorderedItem] = newFields.splice(draggedItem, 1);
+    newFields.splice(dragOverItem, 0, reorderedItem);
+
+    form.setValue('fields', newFields, { shouldDirty: true });
+
+    setDraggedItem(null);
+    setDragOverItem(null);
+  };
+  
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    setDragOverItem(null);
+  }
+
+
   return (
     <>
       <Form {...form}>
@@ -463,7 +505,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                     />
                     
                     {isTemplate && (
-                    <Card>
+                    <Card onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
                         <CardHeader>
                         <CardTitle>Template Fields</CardTitle>
                         <CardDescription>Define the dynamic parts of your prompt.</CardDescription>
@@ -472,22 +514,34 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                         <div className="space-y-4">
                             {fields.length > 0 ? (
                             <div className="space-y-2">
-                                {fields.map((field) => (
-                                <div key={field.id} className="rounded-md border p-3">
-                                    <div className="flex items-center justify-between">
+                                {fields.map((field, index) => (
+                                <div 
+                                    key={field.id} 
+                                    className={cn(
+                                        "rounded-md border p-3 flex items-center justify-between transition-all",
+                                        draggedItem === index && "opacity-50",
+                                        dragOverItem === index && draggedItem !== index && "border-primary ring-2 ring-primary"
+                                    )}
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, index)}
+                                    onDragOver={(e) => handleDragOver(e, index)}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
                                         <div>
                                             <p className="font-semibold">{field.name}</p>
                                             <p className="text-sm text-muted-foreground">Type: {field.type}</p>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" type="button" onClick={() => handleEditFieldClick(field)}>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button variant="ghost" size="icon" type="button" onClick={() => handleEditFieldClick(field)}>
                                             <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field)}>
+                                        </Button>
+                                        <Button variant="ghost" size="icon" type="button" onClick={() => removeField(field)}>
                                             <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
-                                        </div>
+                                        </Button>
+                                    </div>
                                 </div>
                                 ))}
                             </div>
@@ -534,3 +588,4 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
+
