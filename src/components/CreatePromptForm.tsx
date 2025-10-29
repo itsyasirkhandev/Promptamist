@@ -520,7 +520,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                                     className={cn(
                                         "rounded-md border p-3 flex items-center justify-between transition-all",
                                         draggedItem === index && "opacity-50",
-                                        dragOverItem === index && draggedItem !== index && "border-primary ring-2 ring-primary"
+                                        dragOverItem === index && draggedItem !== index && "border-primary border-2"
                                     )}
                                     draggable
                                     onDragStart={(e) => handleDragStart(e, index)}
