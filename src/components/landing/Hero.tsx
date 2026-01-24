@@ -44,7 +44,7 @@ export function Hero() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full h-12 px-8 text-base bg-background/50 backdrop-blur-sm hover:bg-background/80" asChild>
+            <Button size="lg" variant="outline" className="rounded-full h-12 px-8 text-base bg-background/50 backdrop-blur-sm hover:bg-background/80 hover:text-foreground" asChild>
               <Link href="#features">Learn More</Link>
             </Button>
           </div>
