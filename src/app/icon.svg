@@ -1,0 +1,11 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .primary { fill: #18181b; }
+    @media (prefers-color-scheme: dark) {
+      .primary { fill: #ffffff; }
+    }
+    .accent { fill: #6366f1; }
+  </style>
+  <path class="primary" d="M9 4L9 28L14 28L14 18L18.5 18C23.7467 18 28 13.7467 28 8.5C28 6.01472 27.0125 3.63065 25.2553 1.87335C23.498 0.116053 21.1139 -0.871429 18.6286 -0.871429L9 4ZM14 9L18.5 9C20.9853 9 23 11.0147 23 13.5C23 15.9853 20.9853 18 18.5 18L14 18L14 9Z" transform="translate(0, 2)"/>
+  <path class="accent" d="M28 0L29.2 3.2L32 4.4L29.2 5.6L28 8.8L26.8 5.6L24 4.4L26.8 3.2z" />
+</svg>
