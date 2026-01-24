@@ -1,23 +1,22 @@
-
 'use client';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileQuestion, FolderClosed, Repeat } from "lucide-react";
+
+import { FileQuestion, FolderClosed, Repeat, AlertCircle } from "lucide-react";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
 
 const problems = [
   {
-    icon: <Repeat className="h-10 w-10 text-primary" />,
+    icon: <Repeat className="h-8 w-8" />,
     title: "Endless Repetition",
     description: "You find yourself typing or pasting the same complex instructions into ChatGPT over and over again, wasting valuable time."
   },
   {
-    icon: <FileQuestion className="h-10 w-10 text-primary" />,
+    icon: <FileQuestion className="h-8 w-8" />,
     title: "Lost Masterpieces",
     description: "You craft the perfect prompt that gives you amazing results, but it gets lost in your chat history, never to be found again."
   },
   {
-    icon: <FolderClosed className="h-10 w-10 text-primary" />,
+    icon: <FolderClosed className="h-8 w-8" />,
     title: "Disorganized Workflow",
     description: "Your prompts are scattered across notes, documents, and spreadsheets, making it impossible to stay organized and efficient."
   }
@@ -27,31 +26,36 @@ export function Problem() {
   const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
 
   return (
-    <section ref={ref} id="problem" className="py-16 sm:py-24 bg-muted/50 scroll-mt-20">
-      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up")}>
-        <div className="text-center">
+    <section ref={ref} id="problem" className="py-24 bg-background scroll-mt-20">
+      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up duration-700")}>
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center p-2 mb-6 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+             <AlertCircle className="w-4 h-4 mr-2" />
+             <span className="text-sm font-semibold uppercase tracking-wider">The Problem</span>
+          </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-headline">
-            Sound Familiar? The Prompt Trap.
+            Sound Familiar? <span className="text-muted-foreground">The Prompt Trap.</span>
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             If you're a power user of AI, you've felt the frustration. Your workflow is powerful, but your process is broken.
           </p>
         </div>
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {problems.map((problem, i) => (
-            <Card key={problem.title} className="text-center" style={{animationDelay: `${i * 150}ms`}}>
-              <CardHeader>
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+            <div 
+                key={problem.title} 
+                className="group p-8 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 text-left"
+                style={{animationDelay: `${i * 150}ms`}}
+            >
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-background shadow-sm text-primary group-hover:scale-110 transition-transform duration-300">
                   {problem.icon}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <h3 className="text-xl font-bold font-headline">{problem.title}</h3>
-                <p className="mt-2 text-muted-foreground">
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">{problem.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">
                   {problem.description}
-                </p>
-              </CardContent>
-            </Card>
+              </p>
+            </div>
           ))}
         </div>
       </div>
