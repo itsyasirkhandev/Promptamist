@@ -1,6 +1,6 @@
 
 'use client';
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Library, Wand2, Tags, Copy } from "lucide-react";
 import Image from "next/image";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
@@ -8,24 +8,24 @@ import { cn } from "@/lib/utils";
 
 const features = [
   {
-    icon: <Library className="h-6 w-6" />,
+    icon: <Library className="h-8 w-8" />,
     title: "Centralized Library",
-    description: "A single, searchable home for every prompt you create. No more lost notes."
+    description: "A single, searchable home for every prompt you create. No more lost notes or scattered documents."
   },
   {
-    icon: <Wand2 className="h-6 w-6" />,
+    icon: <Wand2 className="h-8 w-8" />,
     title: "Dynamic Templating",
     description: "Turn any prompt into a reusable template with dynamic fields like `{{topic}}` or `{{tone}}`."
   },
   {
-    icon: <Tags className="h-6 w-6" />,
+    icon: <Tags className="h-8 w-8" />,
     title: "Tagging & Filtering",
-    description: "Organize your prompts with custom tags and find exactly what you need in seconds."
+    description: "Organize your prompts with custom tags and find exactly what you need in seconds with powerful search."
   },
   {
-    icon: <Copy className="h-6 w-6" />,
+    icon: <Copy className="h-8 w-8" />,
     title: "One-Click Copy",
-    description: "Instantly copy any prompt or generated template to your clipboard, ready for use."
+    description: "Instantly copy any prompt or generated template to your clipboard, ready for use in any AI tool."
   }
 ];
 
@@ -44,31 +44,26 @@ export function Features() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:items-center">
-            <div className="grid gap-6 sm:grid-cols-2">
-                {features.map((feature, i) => (
-                    <Card key={feature.title} className="[--delay:0s]" style={{animationDelay: `calc(${i * 100}ms + var(--delay, 0s))`}}>
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                               <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                                 {feature.icon}
-                               </div>
-                               <CardTitle className="text-lg font-bold">{feature.title}</CardTitle>
-                            </div>
-                            <CardDescription className="pt-4">{feature.description}</CardDescription>
-                        </CardHeader>
-                    </Card>
-                ))}
-            </div>
-            <div className="mt-10 lg:mt-0 order-first lg:order-last [--delay:400ms]">
-                 <Image
-                    src="https://i.postimg.cc/XYQwh2z7/promptamist-use-prompt-dialog.png"
-                    alt="Use prompt template dialog"
-                    width={1200}
-                    height={800}
-                    className="rounded-lg shadow-xl ring-1 ring-border"
-                />
-            </div>
+        <div className="mt-12">
+            <Image
+                src="https://i.postimg.cc/XYQwh2z7/promptamist-use-prompt-dialog.png"
+                alt="Use prompt template dialog"
+                width={1200}
+                height={800}
+                className="rounded-lg shadow-xl ring-1 ring-border"
+            />
+        </div>
+
+        <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {features.map((feature, i) => (
+                <div key={feature.title} className="flex flex-col items-center text-center [--delay:0s]" style={{animationDelay: `calc(${i * 100}ms + var(--delay, 0s))`}}>
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        {feature.icon}
+                    </div>
+                    <h3 className="mt-6 text-xl font-bold">{feature.title}</h3>
+                    <p className="mt-2 text-muted-foreground">{feature.description}</p>
+                </div>
+            ))}
         </div>
       </div>
     </section>

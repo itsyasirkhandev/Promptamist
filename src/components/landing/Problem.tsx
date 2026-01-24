@@ -7,17 +7,17 @@ import { cn } from "@/lib/utils";
 
 const problems = [
   {
-    icon: <Repeat className="h-8 w-8 text-primary" />,
+    icon: <Repeat className="h-10 w-10 text-primary" />,
     title: "Endless Repetition",
     description: "You find yourself typing or pasting the same complex instructions into ChatGPT over and over again, wasting valuable time."
   },
   {
-    icon: <FileQuestion className="h-8 w-8 text-primary" />,
+    icon: <FileQuestion className="h-10 w-10 text-primary" />,
     title: "Lost Masterpieces",
     description: "You craft the perfect prompt that gives you amazing results, but it gets lost in your chat history, never to be found again."
   },
   {
-    icon: <FolderClosed className="h-8 w-8 text-primary" />,
+    icon: <FolderClosed className="h-10 w-10 text-primary" />,
     title: "Disorganized Workflow",
     description: "Your prompts are scattered across notes, documents, and spreadsheets, making it impossible to stay organized and efficient."
   }
@@ -41,7 +41,7 @@ export function Problem() {
           {problems.map((problem, i) => (
             <Card key={problem.title} className="text-center" style={{animationDelay: `${i * 150}ms`}}>
               <CardHeader>
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
                   {problem.icon}
                 </div>
               </CardHeader>

@@ -11,7 +11,7 @@ export function CTA() {
   const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
 
   return (
-    <section ref={ref} className="py-16 sm:py-24 bg-primary/5">
+    <section ref={ref} className="py-16 sm:py-24 bg-primary/10 border-t border-primary/20">
       <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up")}>
         <div className="text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-headline">
