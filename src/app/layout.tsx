@@ -11,7 +11,7 @@ import { UserProfile } from '@/components/auth/UserProfile';
 import { AppLayout } from '@/components/AppLayout';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
-const siteUrl = "https://promptamist.netlify.app";
+const siteUrl = "https://promptamist.vercel.app/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
