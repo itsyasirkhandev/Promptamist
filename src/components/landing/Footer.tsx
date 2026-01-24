@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bot, Github, Twitter } from "lucide-react";
+import { Bot, Github, Linkedin } from "lucide-react";
 
 const NAV_LINKS = [
   { href: '#problem', label: 'Problem' },
@@ -33,11 +33,11 @@ export function Footer() {
           </nav>
           
           <div className="flex items-center gap-4">
-            <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
+            <Link href="https://www.linkedin.com/in/connectyasir" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Linkedin className="h-5 w-5" />
+                <span className="sr-only">LinkedIn</span>
             </Link>
-             <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+             <Link href="https://github.com/itsyasirkhandev/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
             </Link>
