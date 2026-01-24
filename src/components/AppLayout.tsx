@@ -28,20 +28,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const renderHeaderContent = () => {
     if (isLandingPage) {
         return (
-            <div className="flex w-full items-center justify-between">
-                 <div className="flex items-center gap-6">
+            <>
+                <div className="flex-shrink-0">
                     <Link href="/" className="flex items-center space-x-2">
                         <Bot className="h-6 w-6 text-primary" />
                         <span className="font-bold inline-block">Promptamist</span>
                     </Link>
-                    <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-                        {NAV_LINKS.map(link => (
-                            <Link key={link.href} href={link.href} className="text-muted-foreground hover:text-foreground transition-colors">
-                                {link.label}
-                            </Link>
-                        ))}
-                    </nav>
-                 </div>
+                </div>
+
+                <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6 text-sm font-medium">
+                    {NAV_LINKS.map(link => (
+                        <Link key={link.href} href={link.href} className="text-muted-foreground hover:text-foreground transition-colors">
+                            {link.label}
+                        </Link>
+                    ))}
+                </nav>
+                 
                  <div className="flex items-center gap-2">
                     <div className="hidden md:flex items-center gap-2">
                       <ThemeToggle />
@@ -130,7 +132,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         </Sheet>
                     </div>
                 </div>
-            </div>
+            </>
         )
     }
 
@@ -158,7 +160,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">
       <header className='sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b'>
-        <div className="container mx-auto flex justify-between items-center p-3">
+        <div className="container mx-auto flex justify-between items-center p-3 relative">
             {renderHeaderContent()}
         </div>
       </header>
