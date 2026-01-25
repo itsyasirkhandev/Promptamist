@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { FilePlus, Search, X } from "lucide-react";
+import { FilePlus, Search } from "lucide-react";
 import { usePrompts } from "@/hooks/use-prompts";
 import { PromptCard } from "@/components/PromptCard";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/AppLayout";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 
 function EmptyState({ onClear, isFiltered }: { onClear: () => void; isFiltered: boolean }) {
@@ -21,13 +28,13 @@ function EmptyState({ onClear, isFiltered }: { onClear: () => void; isFiltered: 
       </h2>
       <p className="mt-2 mb-6 text-muted-foreground">
         {isFiltered
-          ? "No prompts matched your search. Why not create a new one?"
+          ? "Try adjusting your search or filters. You can also create a new one."
           : "You haven't created any prompts yet. Let's change that!"}
       </p>
       {isFiltered ? (
         <div className="flex gap-4">
             <Button variant="outline" onClick={onClear}>
-                Clear Search & Filters
+                Clear Filters
             </Button>
             <Button asChild>
               <Link href="/create">
@@ -64,9 +71,9 @@ export default function PromptsPage() {
     });
   }, [prompts, searchTerm, selectedTag, isLoaded]);
 
-  const handleTagClick = (tag: string) => {
-    if (selectedTag === tag) {
-      setSelectedTag(null); // Deselect if clicking the same tag
+  const handleTagChange = (tag: string) => {
+    if (tag === "all-tags") {
+      setSelectedTag(null);
     } else {
       setSelectedTag(tag);
     }
@@ -119,8 +126,8 @@ export default function PromptsPage() {
         </div>
 
         {(isLoaded && prompts.length > 0) || hasActiveFilter ? (
-          <div className="mb-8 space-y-4">
-              <div className="relative">
+          <div className="mb-8 flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                       type="text"
@@ -131,20 +138,19 @@ export default function PromptsPage() {
                   />
               </div>
               {allTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                  {allTags.map((tag) => (
-                  <Button
-                      key={tag}
-                      variant={selectedTag === tag ? "default" : "outline"}
-                      onClick={() => handleTagClick(tag)}
-                      size="sm"
-                      className="rounded-full"
-                  >
-                      {tag}
-                      {selectedTag === tag && <X className="ml-1.5 h-3 w-3" />}
-                  </Button>
-                  ))}
-              </div>
+                <Select value={selectedTag || "all-tags"} onValueChange={handleTagChange}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="Filter by tag..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="all-tags">All Tags</SelectItem>
+                    {allTags.map((tag) => (
+                        <SelectItem key={tag} value={tag}>
+                        {tag}
+                        </SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
               )}
           </div>
         ) : null}
