@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Bot, Github, Linkedin } from "lucide-react";
+import { Github, Linkedin } from "lucide-react";
+import { Logo } from "../Logo";
 
 const NAV_LINKS = [
   { href: '#problem', label: 'Problem' },
@@ -13,12 +14,10 @@ export function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col items-center md:items-start gap-4">
-             <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground">
-                    <Bot className="h-5 w-5" />
-                </div>
+             <Link href="/" className="flex items-center gap-2">
+                <Logo className="h-8 w-8" />
                 <span className="font-bold text-xl tracking-tight">Promptamist</span>
-            </div>
+            </Link>
             <p className="text-sm text-muted-foreground max-w-xs text-center md:text-left">
                 The personal command center for your AI prompts. Stop repeating yourself.
             </p>

@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmailSignInForm } from '@/components/auth/EmailSignInForm';
 import { EmailSignUpForm } from '@/components/auth/EmailSignUpForm';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { Separator } from '@/components/ui/separator';
-import { Bot } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 import Link from 'next/link';
 
 export default function AuthPage() {
@@ -20,7 +19,7 @@ export default function AuthPage() {
         <CardHeader className="text-center">
           <div className="mb-4 flex flex-col items-center justify-center gap-2">
             <Link href="/" className="flex items-center gap-2 text-foreground">
-              <Bot className="h-8 w-8 text-primary" />
+              <Logo className="h-8 w-8" />
               <span className="text-xl font-bold">Promptamist</span>
             </Link>
           </div>

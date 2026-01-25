@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bot, LayoutDashboard, Menu } from 'lucide-react';
+import { LayoutDashboard, Menu } from 'lucide-react';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { ThemeToggle } from './ThemeToggle';
 import { useUser } from '@/firebase';
@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import { Sheet, SheetContent, SheetClose, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from './ui/sheet';
 import { Skeleton } from './ui/skeleton';
 import { ScrollArea } from './ui/scroll-area';
+import { Logo } from './Logo';
 
 const LANDING_PATHS = ['/'];
 
@@ -31,7 +32,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <>
                 <div className="flex-shrink-0">
                     <Link href="/" className="flex items-center space-x-2">
-                        <Bot className="h-6 w-6 text-primary" />
+                        <Logo className="h-6 w-6" />
                         <span className="font-bold inline-block">Promptamist</span>
                     </Link>
                 </div>
@@ -79,7 +80,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             <SheetHeader className="p-6 text-left border-b flex-shrink-0">
                                 <SheetTitle>
                                     <Link href="/" className="flex items-center space-x-2">
-                                        <Bot className="h-6 w-6 text-primary" />
+                                        <Logo className="h-6 w-6" />
                                         <span className="font-bold inline-block">Promptamist</span>
                                     </Link>
                                 </SheetTitle>
@@ -139,7 +140,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return (
         <>
             <Link href={user ? "/prompts" : "/"} className="flex items-center space-x-2">
-                <Bot className="h-6 w-6 text-primary" />
+                <Logo className="h-6 w-6" />
                 <span className="font-bold inline-block">Promptamist</span>
             </Link>
             
