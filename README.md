@@ -1,6 +1,6 @@
 Pr# Promptamist - Your Personal AI Prompt Library
 
-**Live URL: [https://promptamist.netlify.app](https://promptamist.netlify.app)**
+**Live URL: [https://promptamist.vercel.app](https://promptamist.vercel.app)**
 
 **Author: Yasir | Portfolio: [https://yasir.qzz.io](https://yasir.qzz.io)**
 
