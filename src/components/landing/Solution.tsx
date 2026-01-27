@@ -1,13 +1,9 @@
-'use client';
-
 import Image from "next/image";
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
 import { CheckCircle2 } from "lucide-react";
+import { ScrollAnimation } from './ScrollAnimation';
 
 export function Solution() {
-  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
-
   const benefits = [
     "Save hours of repetitive typing",
     "Maintain consistent output quality",
@@ -16,8 +12,8 @@ export function Solution() {
   ];
 
   return (
-    <section ref={ref} id="solution" className="py-24 bg-muted/20 scroll-mt-20">
-      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up duration-700")}>
+    <section id="solution" className="py-24 bg-muted/20 scroll-mt-20">
+      <ScrollAnimation className="container mx-auto px-4 sm:px-6 lg:px-8 duration-700">
         <div className="lg:grid lg:grid-cols-12 lg:gap-16 lg:items-center">
           
           <div className="lg:col-span-6 lg:order-last relative">
@@ -53,7 +49,7 @@ export function Solution() {
           </div>
 
         </div>
-      </div>
+      </ScrollAnimation>
     </section>
   );
 }

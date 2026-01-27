@@ -1,25 +1,21 @@
-'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { cn } from '@/lib/utils';
+import { ScrollAnimation } from './ScrollAnimation';
 
 export function Hero() {
-  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
-
   return (
-    <section ref={ref} className="relative overflow-hidden bg-background pt-24 pb-32 lg:pt-36 lg:pb-40">
+    <section className="relative overflow-hidden bg-background pt-24 pb-32 lg:pt-36 lg:pb-40">
       {/* Background Gradients */}
       <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
       <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
       <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={cn("flex flex-col items-center text-center opacity-0", isIntersecting && "animate-in fade-in-up duration-1000")}>
+        <ScrollAnimation className="flex flex-col items-center text-center duration-1000">
           
           <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium rounded-full bg-secondary/50 backdrop-blur-sm border border-secondary-foreground/10 text-secondary-foreground">
             <Sparkles className="w-4 h-4 mr-2 inline-block text-primary" />
@@ -64,7 +60,7 @@ export function Hero() {
             </div>
           </div>
 
-        </div>
+        </ScrollAnimation>
       </div>
     </section>
   );

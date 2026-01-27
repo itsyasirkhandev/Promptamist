@@ -1,23 +1,19 @@
-'use client';
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap } from "lucide-react";
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
+import { ScrollAnimation } from './ScrollAnimation';
 
 export function CTA() {
-  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
-
   return (
-    <section ref={ref} className="py-24 relative overflow-hidden">
+    <section className="py-24 relative overflow-hidden">
       {/* Background with Gradient */}
       <div className="absolute inset-0 bg-primary z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-indigo-900 opacity-90" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
       </div>
 
-      <div className={cn("container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 text-center", isIntersecting ? "animate-in fade-in-up duration-700" : "opacity-0")}>
+      <ScrollAnimation className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 text-center duration-700">
         <div className="mx-auto max-w-3xl">
           <div className="inline-flex items-center justify-center p-3 mb-8 rounded-2xl bg-white/10 backdrop-blur-sm text-white border border-white/20 shadow-xl">
              <Zap className="w-6 h-6 mr-2 fill-yellow-400 text-yellow-400" />
@@ -44,7 +40,7 @@ export function CTA() {
             </p>
           </div>
         </div>
-      </div>
+      </ScrollAnimation>
     </section>
   );
 }

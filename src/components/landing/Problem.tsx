@@ -1,8 +1,6 @@
-'use client';
-
 import { FileQuestion, FolderClosed, Repeat, AlertCircle } from "lucide-react";
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
+import { ScrollAnimation } from './ScrollAnimation';
 
 const problems = [
   {
@@ -23,11 +21,9 @@ const problems = [
 ];
 
 export function Problem() {
-  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
-
   return (
-    <section ref={ref} id="problem" className="py-24 bg-background scroll-mt-20">
-      <div className={cn("container mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up duration-700")}>
+    <section id="problem" className="py-24 bg-background scroll-mt-20">
+      <ScrollAnimation className="container mx-auto px-4 sm:px-6 lg:px-8 duration-700">
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center p-2 mb-6 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
              <AlertCircle className="w-4 h-4 mr-2" />
@@ -58,7 +54,7 @@ export function Problem() {
             </div>
           ))}
         </div>
-      </div>
+      </ScrollAnimation>
     </section>
   );
 }

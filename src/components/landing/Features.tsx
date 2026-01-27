@@ -1,9 +1,7 @@
-'use client';
-
 import { Library, Wand2, Tags, Copy, Zap, Search, Share2, Layers } from "lucide-react";
 import Image from "next/image";
-import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { cn } from "@/lib/utils";
+import { ScrollAnimation } from './ScrollAnimation';
 
 const features = [
   {
@@ -33,13 +31,11 @@ const features = [
 ];
 
 export function Features() {
-  const [ref, isIntersecting] = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
-
   return (
-    <section ref={ref} id="features" className="py-24 bg-muted/30 scroll-mt-20 relative overflow-hidden">
+    <section id="features" className="py-24 bg-muted/30 scroll-mt-20 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pointer-events-none" />
       
-      <div className={cn("container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 opacity-0", isIntersecting && "animate-in fade-in-up duration-700")}>
+      <ScrollAnimation className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 duration-700">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight font-headline">
             Everything You Need to <br />
@@ -83,7 +79,7 @@ export function Features() {
                  </div>
             </div>
         </div>
-      </div>
+      </ScrollAnimation>
     </section>
   );
 }
