@@ -41,7 +41,7 @@ export function Features() {
             Everything You Need to <br />
             <span className="text-primary">Master Your Prompts</span>
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground">
+          <p className="mt-6 text-lg text-foreground/80">
             From simple snippets to complex, multi-variable templates, Promptamist provides the tools to streamline your AI workflow.
           </p>
         </div>
@@ -63,7 +63,7 @@ export function Features() {
                             {feature.icon}
                         </div>
                         <h3 className="text-xl font-bold text-foreground mb-3">{feature.title}</h3>
-                        <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                        <p className="text-foreground/70 leading-relaxed">{feature.description}</p>
                     </div>
                 </div>
             ))}

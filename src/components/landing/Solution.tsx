@@ -34,7 +34,7 @@ export function Solution() {
               Your Personal <br />
               <span className="text-primary">AI Prompt Library</span>
             </h2>
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-lg text-foreground/80 mb-8 leading-relaxed">
               Promptamist is the bridge between your ideas and AI execution. We provide the structure you need to treat prompts like the valuable assets they are.
             </p>
             

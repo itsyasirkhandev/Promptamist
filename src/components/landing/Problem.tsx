@@ -30,9 +30,9 @@ export function Problem() {
              <span className="text-sm font-semibold uppercase tracking-wider">The Problem</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-headline">
-            Sound Familiar? <span className="text-muted-foreground">The Prompt Trap.</span>
+            Sound Familiar? <span className="text-foreground/60">The Prompt Trap.</span>
           </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground/80">
             If you're a power user of AI, you've felt the frustration. Your workflow is powerful, but your process is broken.
           </p>
         </div>
@@ -41,14 +41,14 @@ export function Problem() {
           {problems.map((problem, i) => (
             <div 
                 key={problem.title} 
-                className="group p-8 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50 text-left"
+                className="group p-8 rounded-2xl bg-muted/50 hover:bg-muted/80 transition-colors border border-border/10 hover:border-border/50 text-left"
                 style={{animationDelay: `${i * 150}ms`}}
             >
               <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-background shadow-sm text-primary group-hover:scale-110 transition-transform duration-300">
                   {problem.icon}
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">{problem.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-foreground/70 leading-relaxed">
                   {problem.description}
               </p>
             </div>

@@ -24,7 +24,7 @@ export function CTA() {
             Ready to Supercharge <br /> Your AI Workflow?
           </h2>
           
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-white mb-10 max-w-2xl mx-auto leading-relaxed">
             Start building your personal prompt library today. It's free, intuitive, and designed for power users like you.
           </p>
           
@@ -35,7 +35,7 @@ export function CTA() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
             </Button>
-            <p className="text-white/60 text-sm mt-4 sm:mt-0 sm:ml-4">
+            <p className="text-white/80 text-sm mt-4 sm:mt-0 sm:ml-4">
                 No credit card required.
             </p>
           </div>

@@ -29,7 +29,7 @@ export function Hero() {
             </span>
           </h1>
           
-          <p className="mt-8 max-w-2xl text-lg sm:text-xl text-muted-foreground leading-relaxed">
+          <p className="mt-8 max-w-2xl text-lg sm:text-xl text-foreground/80 leading-relaxed">
             Promptamist is your personal command center for AI prompts. Save, organize, and reuse your best prompts as powerful templates. 
           </p>
 
