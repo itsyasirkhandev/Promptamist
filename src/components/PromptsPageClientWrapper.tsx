@@ -19,5 +19,9 @@ export function PromptsPageClientWrapper({
     return null;
   }
 
+  if (!React.isValidElement(children)) {
+    return <>{children}</>;
+  }
+
   return <>{React.cloneElement(children, { userId: user.uid } as any)}</>;
 }
