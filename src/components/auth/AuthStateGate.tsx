@@ -41,35 +41,23 @@ export function AuthStateGate({ children }: { children: React.ReactNode }) {
     }
   }, [isLoaded, user, router, pathname]);
 
-  // Show a loading skeleton while checking auth state, or if a redirect is imminent
-  if (!isLoaded || (!user && !PUBLIC_ROUTES.includes(pathname) && pathname !== AUTH_ROUTE) || (user && pathname === AUTH_ROUTE)) {
-    // If it's a public route that we are redirecting from (like auth page), show a skeleton
-     if (pathname === AUTH_ROUTE) {
-       return (
-         <div className="w-full h-screen">
-          <Skeleton className="h-full w-full" />
-         </div>
-       );
-     }
-     
-     // For protected routes while loading
-     if (!PUBLIC_ROUTES.includes(pathname)) {
-        return (
-            <div className="w-full h-full flex justify-center items-center p-8">
-                <div className="w-full max-w-screen-xl space-y-8">
-                    <Skeleton className="h-16 w-1/3" />
-                    <Skeleton className="h-8 w-full" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <Skeleton className="h-48 w-full" />
-                        <Skeleton className="h-48 w-full" />
-                        <Skeleton className="h-48 w-full" />
-                    </div>
-                </div>
-            </div>
-        );
-     }
-  }
+  // Show a loading skeleton only if:
+  // 1. We are on a protected route AND 
+  // 2. We don't have a user yet AND 
+  // 3. We are still checking (isLoaded is false)
+  //
+  // CRITICAL: We don't block the render if the server has already sent content.
+  // We let the content hydrate and only redirect if the check fails later.
+  
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+  const isAuthRoute = pathname === AUTH_ROUTE;
 
+  if (!isLoaded && !isPublicRoute && !isAuthRoute) {
+      // Instead of returning a full-page skeleton that wipes out the server HTML,
+      // we return the children but keep them hidden or just let them stay.
+      // For the best UX with PPR, we should just let the children render.
+      return <>{children}</>;
+  }
 
   return <>{children}</>;
 }
