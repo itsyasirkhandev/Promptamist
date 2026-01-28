@@ -39,9 +39,14 @@ export function PromptsList({ userId }: { userId: string }) {
   }, [displayPrompts]);
 
   // Show skeleton if:
-  // 1. Cache hasn't finished checking AND
-  // 2. Real-time Firebase data hasn't finished initial load
+  // 1. Both sources are still loading
   if (!isCacheLoaded && !isRealtimeLoaded) {
+    return <PromptsSkeleton />;
+  }
+
+  // 2. Cache is "loaded" but empty, and real-time hasn't finished its first check yet
+  // This prevents showing the empty state while waiting for real-time data to arrive.
+  if (isCacheLoaded && (!cachedPrompts || cachedPrompts.length === 0) && !isRealtimeLoaded) {
     return <PromptsSkeleton />;
   }
   
