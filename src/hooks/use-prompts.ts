@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { updateTag } from 'next/cache';
 
 export function usePrompts() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -70,40 +71,51 @@ export function usePrompts() {
       userId: user.uid,
       createdAt: serverTimestamp(),
     };
-    addDoc(promptsRef, newPrompt)
-        .catch((serverError) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: promptsRef.path,
-                operation: 'create',
-                requestResourceData: newPrompt,
-            }));
-        });
+    try {
+        await addDoc(promptsRef, newPrompt);
+        // Revalidate server cache
+        updateTag(`prompts-user-${user.uid}`);
+    } catch (serverError) {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: promptsRef.path,
+            operation: 'create',
+            requestResourceData: newPrompt,
+        }));
+    }
   }, [firestore, user]);
 
   const updatePrompt = useCallback(async (promptId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     const promptRef = doc(firestore, 'prompts', promptId);
-    updateDoc(promptRef, updatedData)
-        .catch((serverError) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: promptRef.path,
-                operation: 'update',
-                requestResourceData: updatedData,
-            }));
-        });
-  }, [firestore]);
+    try {
+        await updateDoc(promptRef, updatedData);
+        // Revalidate server cache
+        updateTag(`prompts-user-${user.uid}`);
+        updateTag(`prompt-${promptId}`);
+    } catch (serverError) {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: promptRef.path,
+            operation: 'update',
+            requestResourceData: updatedData,
+        }));
+    }
+  }, [firestore, user]);
 
   const deletePrompt = useCallback(async (promptId: string) => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     const promptRef = doc(firestore, 'prompts', promptId);
-    deleteDoc(promptRef)
-        .catch((serverError) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: promptRef.path,
-                operation: 'delete',
-            }));
-        });
-  }, [firestore]);
+    try {
+        await deleteDoc(promptRef);
+        // Revalidate server cache
+        updateTag(`prompts-user-${user.uid}`);
+        updateTag(`prompt-${promptId}`);
+    } catch (serverError) {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: promptRef.path,
+            operation: 'delete',
+        }));
+    }
+  }, [firestore, user]);
 
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>();

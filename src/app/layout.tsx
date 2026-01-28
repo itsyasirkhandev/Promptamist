@@ -1,5 +1,6 @@
 
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -66,10 +67,12 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <FirebaseClientProvider>
-              <AuthStateGate>{children}</AuthStateGate>
-            <Toaster />
-          </FirebaseClientProvider>
+          <Suspense fallback={null}>
+            <FirebaseClientProvider>
+                <AuthStateGate>{children}</AuthStateGate>
+              <Toaster />
+            </FirebaseClientProvider>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>
