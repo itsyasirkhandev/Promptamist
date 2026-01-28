@@ -1,10 +1,10 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { getPrompts } from "@/lib/api";
 import { PromptsGrid } from "./PromptsGrid";
 import { usePrompts } from "@/hooks/use-prompts";
-
 import { PromptsSkeleton } from "./PromptsSkeleton";
 
 export function PromptsList({ 
@@ -16,64 +16,56 @@ export function PromptsList({
     initialPrompts?: any[];
     serverSideFetched?: boolean;
 }) {
-  console.log(`[Client] Component mounted. Server fetched: ${serverSideFetched}, Initial count: ${initialPrompts.length}`);
   const { prompts: realtimePrompts, isLoaded: isRealtimeLoaded } = usePrompts();
-  const [cachedPrompts, setCachedPrompts] = useState<any[] | null>(initialPrompts.length > 0 || serverSideFetched ? initialPrompts : null);
-  const [isCacheLoaded, setIsCacheLoaded] = useState(serverSideFetched);
+  
+  // Directly use server data if available, avoiding state-driven flickers during hydration
+  const [fallbackPrompts, setFallbackPrompts] = useState<any[] | null>(null);
+  const [isFallbackLoaded, setIsFallbackLoaded] = useState(false);
 
   useEffect(() => {
-    if (isRealtimeLoaded) {
-        console.log(`[Client] Real-time Firebase data ready. Count: ${realtimePrompts.length}`);
-    }
-  }, [isRealtimeLoaded, realtimePrompts.length]);
-
-  useEffect(() => {
-    // Only fetch if we didn't get initialPrompts from the server AND the server didn't already try
-    if (userId && !serverSideFetched) {
-        console.log(`[Client] No server data found. Triggering fallback fetch for ${userId.slice(0, 5)}...`);
+    // Only trigger a client-side fetch if the server completely failed to provide anything
+    if (userId && !serverSideFetched && !isFallbackLoaded) {
         getPrompts(userId)
             .then((data) => {
-                console.log(`[Client] Fallback fetch successful. Count: ${data.length}`);
-                setCachedPrompts(data);
-                setIsCacheLoaded(true);
+                setFallbackPrompts(data);
+                setIsFallbackLoaded(true);
             })
-            .catch((err) => {
-                console.warn("[Client] Fallback fetch failed:", err);
-                setIsCacheLoaded(true);
-            });
+            .catch(() => setIsFallbackLoaded(true));
     }
-  }, [userId, serverSideFetched]);
+  }, [userId, serverSideFetched, isFallbackLoaded]);
 
-  // Use cached prompts if available, otherwise fallback to real-time prompts
+  // Determine exactly what to show with zero-delay logic
   const displayPrompts = useMemo(() => {
-    // If the server gave us prompts (even an empty list), use them until real-time is ready
-    if (isCacheLoaded && cachedPrompts !== null) {
-      // If real-time has loaded and is different, real-time takes precedence
-      if (isRealtimeLoaded && realtimePrompts.length !== cachedPrompts.length) {
-          return realtimePrompts;
-      }
-      return cachedPrompts;
-    }
-    return realtimePrompts;
-  }, [cachedPrompts, realtimePrompts, isCacheLoaded, isRealtimeLoaded]);
+    // 1. If we have real-time data and it's loaded, it's the source of truth
+    if (isRealtimeLoaded) return realtimePrompts;
+    
+    // 2. If we have server-side data, use it immediately
+    if (serverSideFetched) return initialPrompts;
+    
+    // 3. Use client-side fallback if server failed
+    if (fallbackPrompts) return fallbackPrompts;
+    
+    return [];
+  }, [realtimePrompts, isRealtimeLoaded, initialPrompts, serverSideFetched, fallbackPrompts]);
 
   const allTags = useMemo(() => {
     const tags = new Set(displayPrompts.flatMap((p) => p.tags || []));
     return Array.from(tags).sort();
   }, [displayPrompts]);
 
-  // Show skeleton ONLY if:
-  // We haven't fetched from server OR the server fetch failed AND real-time hasn't loaded either
-  if (!isCacheLoaded && !isRealtimeLoaded) {
+  // SKELETON LOGIC:
+  // Only show skeleton if we have absolutely no data from any source yet
+  const hasData = isRealtimeLoaded || serverSideFetched || isFallbackLoaded;
+  
+  if (!hasData) {
+    return <PromptsSkeleton />;
+  }
+
+  // If we have data but it's empty, and real-time is still loading, 
+  // stay on skeleton to prevent "Empty Library" flash
+  if (displayPrompts.length === 0 && !isRealtimeLoaded) {
     return <PromptsSkeleton />;
   }
   
-  // If the server fetch found nothing, but real-time is still loading, 
-  // we might want to keep showing the skeleton to avoid "Library is Empty" flash
-  if (isCacheLoaded && (!displayPrompts || displayPrompts.length === 0) && !isRealtimeLoaded) {
-    return <PromptsSkeleton />;
-  }
-  
-  // If we've finished loading and still have no prompts, PromptsGrid will show EmptyState
   return <PromptsGrid initialPrompts={displayPrompts} allTags={allTags} />;
 }
