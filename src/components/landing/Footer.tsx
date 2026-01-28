@@ -20,32 +20,32 @@ export function Footer() {
                 <Logo className="h-8 w-8" />
                 <span className="font-bold text-xl tracking-tight">Promptamist</span>
             </Link>
-            <p className="text-sm text-foreground/80 max-w-xs text-center md:text-left">
+            <p className="text-sm text-foreground/90 max-w-xs text-center md:text-left">
                 The personal command center for your AI prompts. Stop repeating yourself.
             </p>
           </div>
           
           <nav className="flex gap-8 text-sm font-medium">
             {NAV_LINKS.map(link => (
-              <Link key={link.href} href={link.href} className="text-foreground/70 hover:text-primary transition-colors">
+              <Link key={link.href} href={link.href} className="text-foreground/90 hover:text-primary transition-colors">
                 {link.label}
               </Link>
             ))}
           </nav>
           
           <div className="flex items-center gap-4">
-            <Link href="https://www.linkedin.com/in/connectyasir" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+            <Link href="https://www.linkedin.com/in/connectyasir" target="_blank" rel="noopener noreferrer" className="text-foreground/80 hover:text-foreground transition-colors">
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
             </Link>
-             <Link href="https://github.com/itsyasirkhandev/" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+             <Link href="https://github.com/itsyasirkhandev/" target="_blank" rel="noopener noreferrer" className="text-foreground/80 hover:text-foreground transition-colors">
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
             </Link>
           </div>
         </div>
         
-        <div className="mt-12 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-foreground/60">
+        <div className="mt-12 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-foreground/80">
              <p>© {new Date().getFullYear()} Promptamist. All rights reserved.</p>
              <p>
               Made with ❤️ by{' '}
