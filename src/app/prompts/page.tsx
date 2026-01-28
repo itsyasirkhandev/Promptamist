@@ -9,6 +9,7 @@ import { getPrompts } from "@/lib/api";
 export default async function PromptsPage() {
   const cookieStore = await cookies();
   const userId = cookieStore.get('session-uid')?.value;
+  console.log(`[Prompts Page Server] Cookie UID: ${userId || 'NOT FOUND'}`);
 
   // If we have a userId from the cookie, we can fetch cached prompts immediately on the server
   let initialPrompts = [];
@@ -16,10 +17,12 @@ export default async function PromptsPage() {
   
   if (userId) {
       try {
+          console.log(`[Prompts Page Server] Triggering server-side fetch for ${userId}`);
           initialPrompts = await getPrompts(userId);
           serverSideFetched = true;
+          console.log(`[Prompts Page Server] Successfully fetched ${initialPrompts.length} initial prompts`);
       } catch (e) {
-          console.warn("Failed to fetch initial prompts on server:", e);
+          console.warn("[Prompts Page Server] Failed to fetch initial prompts on server:", e);
       }
   }
 

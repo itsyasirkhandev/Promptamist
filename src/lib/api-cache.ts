@@ -7,6 +7,7 @@ import { initializeFirebase } from '@/firebase/config';
 import type { Prompt } from './types';
 
 export async function getPromptsCached(userId: string): Promise<Prompt[]> {
+  console.log(`[Server Cache] getPromptsCached called for: ${userId}`);
   cacheLife('minutes');
   cacheTag(`prompts-user-${userId}`);
 
@@ -20,6 +21,7 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
 
   try {
     const snapshot = await getDocs(q);
+    console.log(`[Server Cache] Fetched ${snapshot.docs.length} prompts from Firestore for ${userId}`);
     return snapshot.docs.map((doc) => {
         const data = doc.data();
         return {

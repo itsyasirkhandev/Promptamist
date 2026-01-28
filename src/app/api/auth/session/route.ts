@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   const { uid } = await request.json();
+  console.log(`[Session API] Setting session for UID: ${uid}`);
 
   if (!uid) {
     return NextResponse.json({ error: 'UID is required' }, { status: 400 });
