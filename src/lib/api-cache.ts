@@ -1,4 +1,3 @@
-
 'use cache';
 
 import { cacheLife, cacheTag } from 'next/cache';
@@ -6,10 +5,28 @@ import type { Prompt } from './types';
 
 async function getAdminDb() {
     const admin = await import('firebase-admin');
+    
     if (!admin.apps.length) {
-        admin.initializeApp({
-            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        });
+        const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+        const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+        const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
+        if (privateKey && clientEmail) {
+            console.log("[Server Cache] Initializing Admin SDK with Service Account");
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId,
+                    clientEmail,
+                    // Replace escaped newlines in the private key
+                    privateKey: privateKey.replace(/\n/g, '\n'),
+                }),
+            });
+        } else {
+            console.warn("[Server Cache] Missing Admin credentials, falling back to default (may fail)");
+            admin.initializeApp({
+                projectId: projectId,
+            });
+        }
     }
     return admin.firestore();
 }
@@ -43,6 +60,7 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
     });
   } catch (error) {
     console.error("[Server Cache] Error fetching prompts with Admin SDK:", error);
+    // Return empty array so the client-side fallback can take over
     return [];
   }
 }
