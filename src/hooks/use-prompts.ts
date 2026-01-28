@@ -9,7 +9,7 @@ import {
   serverTimestamp,
   query,
   where,
-  onSnapshot,
+  getDocs,
   orderBy,
   doc,
   updateDoc,
@@ -18,12 +18,14 @@ import {
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { revalidateUserPrompts, revalidatePrompt } from '@/lib/actions';
+import { useRouter } from 'next/navigation';
 
 export function usePrompts() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     if (!firestore || !user) {
@@ -32,35 +34,30 @@ export function usePrompts() {
       return;
     }
 
-    setIsLoaded(false);
-    const promptsRef = collection(firestore, 'prompts');
-    const q = query(
-      promptsRef,
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    );
+    // One-time fetch as a fallback/sync mechanism
+    const fetchPrompts = async () => {
+        const promptsRef = collection(firestore, 'prompts');
+        const q = query(
+            promptsRef,
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+        );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const newPrompts = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        } as Prompt));
-        setPrompts(newPrompts);
-        setIsLoaded(true);
-      },
-      (err) => {
-        const permissionError = new FirestorePermissionError({
-          path: promptsRef.path,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        setIsLoaded(true);
-      }
-    );
+        try {
+            const snapshot = await getDocs(q);
+            const newPrompts = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            } as Prompt));
+            setPrompts(newPrompts);
+            setIsLoaded(true);
+        } catch (err) {
+            console.error("Client-side fetch failed", err);
+            setIsLoaded(true);
+        }
+    };
 
-    return () => unsubscribe();
+    fetchPrompts();
   }, [firestore, user]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
@@ -73,49 +70,55 @@ export function usePrompts() {
     };
     try {
         await addDoc(promptsRef, newPrompt);
-        // Revalidate server cache via action
+        // 1. Invalidate Server Cache
         await revalidateUserPrompts(user.uid);
+        // 2. Refresh the current route to pull new cached data
+        router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: promptsRef.path,
+            path: 'prompts',
             operation: 'create',
             requestResourceData: newPrompt,
         }));
     }
-  }, [firestore, user]);
+  }, [firestore, user, router]);
 
   const updatePrompt = useCallback(async (promptId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) => {
     if (!firestore || !user) return;
     const promptRef = doc(firestore, 'prompts', promptId);
     try {
         await updateDoc(promptRef, updatedData);
-        // Revalidate server cache via action
+        // 1. Invalidate Server Cache
         await revalidateUserPrompts(user.uid);
         await revalidatePrompt(promptId);
+        // 2. Refresh the current route to pull new cached data
+        router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: promptRef.path,
+            path: `prompts/${promptId}`,
             operation: 'update',
             requestResourceData: updatedData,
         }));
     }
-  }, [firestore, user]);
+  }, [firestore, user, router]);
 
   const deletePrompt = useCallback(async (promptId: string) => {
     if (!firestore || !user) return;
     const promptRef = doc(firestore, 'prompts', promptId);
     try {
         await deleteDoc(promptRef);
-        // Revalidate server cache via action
+        // 1. Invalidate Server Cache
         await revalidateUserPrompts(user.uid);
         await revalidatePrompt(promptId);
+        // 2. Refresh the current route to pull new cached data
+        router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: promptRef.path,
+            path: `prompts/${promptId}`,
             operation: 'delete',
         }));
     }
-  }, [firestore, user]);
+  }, [firestore, user, router]);
 
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>();

@@ -36,13 +36,13 @@ export function PromptsList({
 
   // Determine exactly what to show with zero-delay logic
   const displayPrompts = useMemo(() => {
-    // 1. If we have real-time data and it's loaded, it's the source of truth
+    // 1. If we have server-side data, use it immediately (it's the cached source of truth)
+    if (serverSideFetched) return initialPrompts;
+
+    // 2. If real-time fallback data is loaded and is valid, use it
     if (isRealtimeLoaded) return realtimePrompts;
     
-    // 2. If we have server-side data, use it immediately
-    if (serverSideFetched) return initialPrompts;
-    
-    // 3. Use client-side fallback if server failed
+    // 3. Use client-side manual fallback if server failed
     if (fallbackPrompts) return fallbackPrompts;
     
     return [];
