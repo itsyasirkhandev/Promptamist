@@ -5,6 +5,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { PromptsPageClient } from "@/components/PromptsPageClient";
 import { PromptsList } from "@/components/PromptsList";
 import { getPrompts } from "@/lib/api";
+import { Suspense } from "react";
+import { PromptsSkeleton } from "@/components/PromptsSkeleton";
 
 export default async function PromptsPage() {
   const cookieStore = await cookies();
@@ -14,28 +16,36 @@ export default async function PromptsPage() {
       redirect("/auth");
   }
 
-  // If we have a userId from the cookie, we can fetch cached prompts immediately on the server
-  let initialPrompts = [];
-  let serverSideFetched = false;
-  
-  if (userId) {
-      try {
-          initialPrompts = await getPrompts(userId);
-          serverSideFetched = true;
-      } catch (e) {
-          console.warn("[Server] Cache fetch failed:", e);
-      }
-  }
-
   return (
     <AppLayout>
         <PromptsPageClient userId={userId || ""}>
-            <PromptsList 
-                userId={userId || ""} 
-                initialPrompts={initialPrompts} 
-                serverSideFetched={serverSideFetched}
-            />
+            <Suspense fallback={<PromptsSkeleton />}>
+                <PromptsDataStreamer userId={userId || ""} />
+            </Suspense>
         </PromptsPageClient>
     </AppLayout>
   );
+}
+
+async function PromptsDataStreamer({ userId }: { userId: string }) {
+    // This component runs on the server. Because it is wrapped in Suspense,
+    // the page shell above it will be sent to the browser immediately
+    // without waiting for this fetch to finish.
+    let initialPrompts = [];
+    let serverSideFetched = false;
+    
+    try {
+        initialPrompts = await getPrompts(userId);
+        serverSideFetched = true;
+    } catch (e) {
+        console.warn("[Server] Cache fetch failed:", e);
+    }
+
+    return (
+        <PromptsList 
+            userId={userId} 
+            initialPrompts={initialPrompts} 
+            serverSideFetched={serverSideFetched}
+        />
+    );
 }
