@@ -38,3 +38,4 @@ Promptamist is a powerful and intuitive application designed to help you craft, 
 - **State Management**: React Hooks & Context
 - **Form Handling**: React Hook Form & Zod
 - **AI/Genkit**: For future generative AI feature integrations.
+
