@@ -33,6 +33,11 @@ export function PromptsList({ userId }: { userId: string }) {
     return realtimePrompts;
   }, [cachedPrompts, realtimePrompts]);
 
+  const allTags = useMemo(() => {
+    const tags = new Set(displayPrompts.flatMap((p) => p.tags || []));
+    return Array.from(tags).sort();
+  }, [displayPrompts]);
+
   // Show skeleton if:
   // 1. Cache hasn't finished checking AND
   // 2. Real-time Firebase data hasn't finished initial load
@@ -41,11 +46,5 @@ export function PromptsList({ userId }: { userId: string }) {
   }
   
   // If we've finished loading and still have no prompts, PromptsGrid will show EmptyState
-  // This now only happens after we are SURE there are no prompts in either source.
-  const allTags = useMemo(() => {
-    const tags = new Set(displayPrompts.flatMap((p) => p.tags || []));
-    return Array.from(tags).sort();
-  }, [displayPrompts]);
-
   return <PromptsGrid initialPrompts={displayPrompts} allTags={allTags} />;
 }
