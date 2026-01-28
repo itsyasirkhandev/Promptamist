@@ -46,6 +46,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user)
       if (user) {
+        // Immediate cookie sync for server-side PPR
+        fetch('/api/auth/session', {
+            method: 'POST',
+            body: JSON.stringify({ uid: user.uid }),
+            headers: { 'Content-Type': 'application/json' },
+        });
+
         const tokenResult = await user.getIdTokenResult()
         setClaims(tokenResult)
       } else {

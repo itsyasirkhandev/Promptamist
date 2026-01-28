@@ -12,9 +12,12 @@ export default async function PromptsPage() {
 
   // If we have a userId from the cookie, we can fetch cached prompts immediately on the server
   let initialPrompts = [];
+  let serverSideFetched = false;
+  
   if (userId) {
       try {
           initialPrompts = await getPrompts(userId);
+          serverSideFetched = true;
       } catch (e) {
           console.warn("Failed to fetch initial prompts on server:", e);
       }
@@ -24,7 +27,11 @@ export default async function PromptsPage() {
     <AppLayout>
         <PromptsPageClient userId={userId || ""}>
             <Suspense fallback={<PromptsSkeleton />}>
-                <PromptsList userId={userId || ""} initialPrompts={initialPrompts} />
+                <PromptsList 
+                    userId={userId || ""} 
+                    initialPrompts={initialPrompts} 
+                    serverSideFetched={serverSideFetched}
+                />
             </Suspense>
         </PromptsPageClient>
     </AppLayout>
