@@ -48,6 +48,11 @@ export function PromptsList({
     return realtimePrompts;
   }, [cachedPrompts, realtimePrompts, isCacheLoaded, isRealtimeLoaded]);
 
+  const allTags = useMemo(() => {
+    const tags = new Set(displayPrompts.flatMap((p) => p.tags || []));
+    return Array.from(tags).sort();
+  }, [displayPrompts]);
+
   // Show skeleton ONLY if:
   // We haven't fetched from server OR the server fetch failed AND real-time hasn't loaded either
   if (!isCacheLoaded && !isRealtimeLoaded) {
