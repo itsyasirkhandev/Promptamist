@@ -1,8 +1,13 @@
+
+"use client";
+
+import { use } from "react";
 import { getPrompts } from "@/lib/api";
 import { PromptsGrid } from "./PromptsGrid";
 
-export async function PromptsListServer({ userId }: { userId: string }) {
-  const prompts = await getPrompts(userId);
+export function PromptsList({ userId }: { userId: string }) {
+  // Use React.use to fetch from the server-side cached function
+  const prompts = use(getPrompts(userId));
   
   const allTags = Array.from(
     new Set(prompts.flatMap((p) => p.tags || []))

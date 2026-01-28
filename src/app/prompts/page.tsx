@@ -1,27 +1,35 @@
+
+"use client";
+
+import { useUser } from "@/firebase";
 import { AppLayout } from "@/components/AppLayout";
 import { PromptsPageClient } from "@/components/PromptsPageClient";
-import { PromptsListServer } from "@/components/PromptsListServer";
+import { PromptsList } from "@/components/PromptsList";
 import { Suspense } from "react";
 import { PromptsSkeleton } from "@/components/PromptsSkeleton";
-import { PromptsPageClientWrapper } from "@/components/PromptsPageClientWrapper";
-
-export function PromptsContent({ userId }: { userId?: string }) {
-    if (!userId) return null;
-    return (
-        <PromptsPageClient userId={userId}>
-            <Suspense fallback={<PromptsSkeleton />}>
-                <PromptsListServer userId={userId} />
-            </Suspense>
-        </PromptsPageClient>
-    );
-}
 
 export default function PromptsPage() {
+  const { user, isLoaded } = useUser();
+
+  if (!isLoaded) {
+    return (
+        <AppLayout>
+            <PromptsSkeleton />
+        </AppLayout>
+    );
+  }
+
+  if (!user) {
+    return null; // AuthStateGate handles redirects
+  }
+
   return (
     <AppLayout>
-        <PromptsPageClientWrapper>
-            <PromptsContent />
-        </PromptsPageClientWrapper>
+        <PromptsPageClient userId={user.uid}>
+            <Suspense fallback={<PromptsSkeleton />}>
+                <PromptsList userId={user.uid} />
+            </Suspense>
+        </PromptsPageClient>
     </AppLayout>
   );
 }
