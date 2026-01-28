@@ -1,4 +1,3 @@
-
 import { getPrompts } from "@/lib/api";
 import { PromptsGrid } from "./PromptsGrid";
 

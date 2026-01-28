@@ -1,29 +1,18 @@
-
 "use client";
 
 import { useUser } from "@/firebase";
-import { Suspense } from "react";
 import { PromptsSkeleton } from "./PromptsSkeleton";
-import { PromptsListServer } from "./PromptsListServer";
 import { FilePlus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 
 export function PromptsPageClient({ 
+    userId,
     children 
 }: { 
-    children: (userId: string) => React.ReactNode 
+    userId: string;
+    children: React.ReactNode
 }) {
-  const { user, isLoaded } = useUser();
-
-  if (!isLoaded) {
-    return <PromptsSkeleton />;
-  }
-
-  if (!user) {
-    return null; // AuthStateGate will redirect
-  }
-
   return (
     <>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
@@ -41,9 +30,7 @@ export function PromptsPageClient({
             </Button>
         </div>
 
-        <Suspense fallback={<PromptsSkeleton />}>
-            {children(user.uid)}
-        </Suspense>
+        {children}
         
         <div className="fixed bottom-4 right-4 sm:hidden">
           <Button asChild size="icon" className="h-14 w-14 rounded-full shadow-lg">

@@ -10,7 +10,7 @@ import { AppLayout } from "@/components/AppLayout";
 
 export default function LandingPage() {
     return (
-        <AppLayout>
+        <AppLayout isLandingPage={true}>
             <Hero />
             <Problem />
             <Solution />

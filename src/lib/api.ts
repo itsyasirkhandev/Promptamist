@@ -1,11 +1,11 @@
+'use cache';
 
 import { cacheLife, cacheTag } from 'next/cache';
-import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/config';
 import type { Prompt } from './types';
 
 export async function getPrompts(userId: string): Promise<Prompt[]> {
-  'use cache';
   cacheLife('minutes');
   cacheTag(`prompts-user-${userId}`);
 
@@ -24,9 +24,12 @@ export async function getPrompts(userId: string): Promise<Prompt[]> {
         return {
             id: doc.id,
             ...data,
-            // Ensure dates are serializable if they aren't already
-            createdAt: data.createdAt,
-        } as Prompt;
+            // Ensure dates are serializable
+            createdAt: data.createdAt ? {
+                seconds: data.createdAt.seconds,
+                nanoseconds: data.createdAt.nanoseconds,
+            } : null,
+        } as any;
     });
   } catch (error) {
     console.error("Error fetching prompts on server:", error);
@@ -35,7 +38,6 @@ export async function getPrompts(userId: string): Promise<Prompt[]> {
 }
 
 export async function getPromptById(id: string): Promise<Prompt | null> {
-    'use cache';
     cacheLife('minutes');
     cacheTag(`prompt-${id}`);
 
@@ -50,7 +52,11 @@ export async function getPromptById(id: string): Promise<Prompt | null> {
         return {
             id: snapshot.id,
             ...data,
-        } as Prompt;
+            createdAt: data.createdAt ? {
+                seconds: data.createdAt.seconds,
+                nanoseconds: data.createdAt.nanoseconds,
+            } : null,
+        } as any;
     } catch (error) {
         console.error("Error fetching prompt by id on server:", error);
         return null;

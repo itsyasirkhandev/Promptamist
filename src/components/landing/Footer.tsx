@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { Github, Linkedin } from "lucide-react";
 import { Logo } from "../Logo";

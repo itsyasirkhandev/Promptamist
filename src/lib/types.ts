@@ -14,7 +14,7 @@ export type Prompt = {
   title: string;
   content: string;
   tags: string[];
-  createdAt: Timestamp;
+  createdAt: { seconds: number; nanoseconds: number } | null;
   userId: string;
   isTemplate?: boolean;
   fields?: PromptField[];

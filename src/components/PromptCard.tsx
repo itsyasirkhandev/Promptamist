@@ -76,7 +76,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
           <div className="flex-1">
             <CardTitle className="font-headline text-lg mb-1 line-clamp-2">{prompt.title}</CardTitle>
             <CardDescription className="text-xs">
-              {prompt.createdAt ? `Created on ${prompt.createdAt.toDate().toLocaleDateString()}` : 'Creating...'}
+              {prompt.createdAt ? `Created on ${new Date(prompt.createdAt.seconds * 1000).toLocaleDateString()}` : 'Creating...'}
             </CardDescription>
           </div>
           <DropdownMenu>
