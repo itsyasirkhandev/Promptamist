@@ -4,8 +4,8 @@ import { AppLayoutClient } from './AppLayoutClient';
 import { Skeleton } from './ui/skeleton';
 
 export function AppLayout({ children, isLandingPage = false }: { children: React.ReactNode, isLandingPage?: boolean }) {
-  const mainContent = isLandingPage ? children : (
-    <main className='container mx-auto flex-grow px-4 py-6 sm:py-8'>
+  const mainContent = (
+    <main className={isLandingPage ? 'flex-grow' : 'container mx-auto flex-grow px-4 py-6 sm:py-8'}>
         {children}
     </main>
   );
