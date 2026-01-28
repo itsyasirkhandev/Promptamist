@@ -44,6 +44,7 @@ async function getAdminDb() {
 }
 
 export async function getPromptsCached(userId: string): Promise<Prompt[]> {
+  console.log(`[use cache] getPromptsCached called for ${userId.slice(0, 5)}...`);
   cacheLife('minutes');
   cacheTag(`prompts-user-${userId}`);
 
@@ -55,6 +56,7 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
       .orderBy('createdAt', 'desc')
       .get();
 
+    console.log(`[use cache] Admin SDK fetch successful. Count: ${snapshot.docs.length}`);
     return snapshot.docs.map((doc) => {
         const data = doc.data();
         return {

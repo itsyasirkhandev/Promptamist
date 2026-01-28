@@ -16,20 +16,29 @@ export function PromptsList({
     initialPrompts?: any[];
     serverSideFetched?: boolean;
 }) {
+  console.log(`[Client] Component mounted. Server fetched: ${serverSideFetched}, Initial count: ${initialPrompts.length}`);
   const { prompts: realtimePrompts, isLoaded: isRealtimeLoaded } = usePrompts();
   const [cachedPrompts, setCachedPrompts] = useState<any[] | null>(initialPrompts.length > 0 || serverSideFetched ? initialPrompts : null);
   const [isCacheLoaded, setIsCacheLoaded] = useState(serverSideFetched);
 
   useEffect(() => {
+    if (isRealtimeLoaded) {
+        console.log(`[Client] Real-time Firebase data ready. Count: ${realtimePrompts.length}`);
+    }
+  }, [isRealtimeLoaded, realtimePrompts.length]);
+
+  useEffect(() => {
     // Only fetch if we didn't get initialPrompts from the server AND the server didn't already try
     if (userId && !serverSideFetched) {
+        console.log(`[Client] No server data found. Triggering fallback fetch for ${userId.slice(0, 5)}...`);
         getPrompts(userId)
             .then((data) => {
+                console.log(`[Client] Fallback fetch successful. Count: ${data.length}`);
                 setCachedPrompts(data);
                 setIsCacheLoaded(true);
             })
             .catch((err) => {
-                console.warn("[PromptsList] Client-side fetch failed:", err);
+                console.warn("[Client] Fallback fetch failed:", err);
                 setIsCacheLoaded(true);
             });
     }
