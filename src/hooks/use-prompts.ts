@@ -5,15 +5,19 @@ import type { Prompt } from '@/lib/types';
 import { useAuth, useFirestore, useUser } from '@/firebase';
 import {
   collection,
+  addDoc,
+  serverTimestamp,
   query,
   where,
   onSnapshot,
   orderBy,
   doc,
+  updateDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { addPromptAction, updatePromptAction, deletePromptAction } from '@/lib/actions';
+import { revalidateUserPrompts, revalidatePrompt } from '@/lib/actions';
 
 export function usePrompts() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -60,42 +64,58 @@ export function usePrompts() {
   }, [firestore, user]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
-    if (!user) return;
+    if (!firestore || !user) return;
+    const promptsRef = collection(firestore, 'prompts');
+    const newPrompt = {
+      ...promptData,
+      userId: user.uid,
+      createdAt: serverTimestamp(),
+    };
     try {
-        await addPromptAction(user.uid, promptData);
+        await addDoc(promptsRef, newPrompt);
+        // Revalidate server cache via action
+        await revalidateUserPrompts(user.uid);
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: 'prompts',
+            path: promptsRef.path,
             operation: 'create',
-            requestResourceData: promptData,
+            requestResourceData: newPrompt,
         }));
     }
-  }, [user]);
+  }, [firestore, user]);
 
   const updatePrompt = useCallback(async (promptId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) => {
-    if (!user) return;
+    if (!firestore || !user) return;
+    const promptRef = doc(firestore, 'prompts', promptId);
     try {
-        await updatePromptAction(user.uid, promptId, updatedData);
+        await updateDoc(promptRef, updatedData);
+        // Revalidate server cache via action
+        await revalidateUserPrompts(user.uid);
+        await revalidatePrompt(promptId);
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: `prompts/${promptId}`,
+            path: promptRef.path,
             operation: 'update',
             requestResourceData: updatedData,
         }));
     }
-  }, [user]);
+  }, [firestore, user]);
 
   const deletePrompt = useCallback(async (promptId: string) => {
-    if (!user) return;
+    if (!firestore || !user) return;
+    const promptRef = doc(firestore, 'prompts', promptId);
     try {
-        await deletePromptAction(user.uid, promptId);
+        await deleteDoc(promptRef);
+        // Revalidate server cache via action
+        await revalidateUserPrompts(user.uid);
+        await revalidatePrompt(promptId);
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: `prompts/${promptId}`,
+            path: promptRef.path,
             operation: 'delete',
         }));
     }
-  }, [user]);
+  }, [firestore, user]);
 
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>();
