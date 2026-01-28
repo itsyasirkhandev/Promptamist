@@ -7,23 +7,33 @@ import { usePrompts } from "@/hooks/use-prompts";
 
 import { PromptsSkeleton } from "./PromptsSkeleton";
 
-export function PromptsList({ userId }: { userId: string }) {
+export function PromptsList({ 
+    userId, 
+    initialPrompts = [] 
+}: { 
+    userId: string;
+    initialPrompts?: any[];
+}) {
   const { prompts: realtimePrompts, isLoaded: isRealtimeLoaded } = usePrompts();
-  const [cachedPrompts, setCachedPrompts] = useState<any[] | null>(null);
-  const [isCacheLoaded, setIsCacheLoaded] = useState(false);
+  const [cachedPrompts, setCachedPrompts] = useState<any[] | null>(initialPrompts.length > 0 ? initialPrompts : null);
+  const [isCacheLoaded, setIsCacheLoaded] = useState(initialPrompts.length > 0);
 
   useEffect(() => {
-    // Attempt to fetch from the server-side cache
-    getPrompts(userId)
-      .then((data) => {
-        setCachedPrompts(data);
+    // Only fetch if we didn't get initialPrompts from the server
+    if (userId && !initialPrompts.length) {
+        getPrompts(userId)
+            .then((data) => {
+                setCachedPrompts(data);
+                setIsCacheLoaded(true);
+            })
+            .catch((err) => {
+                console.warn("Server-side fetch failed, falling back to client-side:", err);
+                setIsCacheLoaded(true);
+            });
+    } else if (userId) {
         setIsCacheLoaded(true);
-      })
-      .catch((err) => {
-        console.warn("Server-side fetch failed, falling back to client-side:", err);
-        setIsCacheLoaded(true);
-      });
-  }, [userId]);
+    }
+  }, [userId, initialPrompts]);
 
   // Use cached prompts if available, otherwise fallback to real-time prompts
   const displayPrompts = useMemo(() => {

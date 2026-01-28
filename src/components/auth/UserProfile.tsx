@@ -16,13 +16,10 @@ import { LogOut, User } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 export function UserProfile() {
-  const { user, isLoaded } = useUser();
-  const auth = useAuth();
+  const { user, isLoaded, logout } = useUser();
 
   const handleSignOut = async () => {
-    if (auth) {
-      await auth.signOut();
-    }
+    await logout();
   };
 
   if (!isLoaded) {

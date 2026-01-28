@@ -14,12 +14,14 @@ export type UserData = {
   user: User | null;
   claims: IdTokenResult | null;
   isLoaded: boolean;
+  logout: () => Promise<void>;
 };
 
 const UserContext = createContext<UserData>({
   user: null,
   claims: null,
   isLoaded: false,
+  logout: async () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -27,6 +29,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [claims, setClaims] = useState<IdTokenResult | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+
+  const logout = async () => {
+    if (auth) {
+      await auth.signOut();
+      await fetch('/api/auth/session', { method: 'DELETE' });
+    }
+  };
 
   useEffect(() => {
     if (!auth) {
@@ -49,7 +58,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, [auth])
 
   const value = useMemo(
-    () => ({ user, claims, isLoaded }),
+    () => ({ user, claims, isLoaded, logout }),
     [user, claims, isLoaded]
   )
 

@@ -20,6 +20,17 @@ export function AuthStateGate({ children }: { children: React.ReactNode }) {
       const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
       const isAuthRoute = pathname === AUTH_ROUTE;
 
+      // Sync session to server
+      if (user) {
+        fetch('/api/auth/session', {
+          method: 'POST',
+          body: JSON.stringify({ uid: user.uid }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        fetch('/api/auth/session', { method: 'DELETE' });
+      }
+
       if (!user && !isPublicRoute && !isAuthRoute) {
         // Not logged in and trying to access a protected page, redirect to auth
         router.push(AUTH_ROUTE);
