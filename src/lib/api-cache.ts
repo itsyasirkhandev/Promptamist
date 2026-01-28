@@ -2,66 +2,74 @@
 'use cache';
 
 import { cacheLife, cacheTag } from 'next/cache';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/config';
 import type { Prompt } from './types';
+
+async function getAdminDb() {
+    const admin = await import('firebase-admin');
+    if (!admin.apps.length) {
+        admin.initializeApp({
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        });
+    }
+    return admin.firestore();
+}
 
 export async function getPromptsCached(userId: string): Promise<Prompt[]> {
   console.log(`[Server Cache] getPromptsCached called for: ${userId}`);
   cacheLife('minutes');
   cacheTag(`prompts-user-${userId}`);
 
-  const { firestore } = initializeFirebase();
-  const promptsRef = collection(firestore, 'prompts');
-  const q = query(
-    promptsRef,
-    where('userId', '==', userId),
-    orderBy('createdAt', 'desc')
-  );
-
   try {
-    const snapshot = await getDocs(q);
-    console.log(`[Server Cache] Fetched ${snapshot.docs.length} prompts from Firestore for ${userId}`);
+    const db = await getAdminDb();
+    const snapshot = await db
+      .collection('prompts')
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    console.log(`[Server Cache] Admin SDK fetched ${snapshot.docs.length} prompts for ${userId}`);
+    
     return snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
             id: doc.id,
             ...data,
-            // Ensure dates are serializable
+            // Convert Admin Timestamp to serializable object
             createdAt: data.createdAt ? {
-                seconds: data.createdAt.seconds,
-                nanoseconds: data.createdAt.nanoseconds,
+                seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
+                nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
             } : null,
         } as any;
     });
   } catch (error) {
-    console.error("Error fetching prompts on server:", error);
+    console.error("[Server Cache] Error fetching prompts with Admin SDK:", error);
     return [];
   }
 }
 
 export async function getPromptByIdCached(id: string): Promise<Prompt | null> {
+    console.log(`[Server Cache] getPromptByIdCached called for: ${id}`);
     cacheLife('minutes');
     cacheTag(`prompt-${id}`);
 
-    const { firestore } = initializeFirebase();
-    const { doc, getDoc } = await import('firebase/firestore');
-    const promptRef = doc(firestore, 'prompts', id);
-
     try {
-        const snapshot = await getDoc(promptRef);
-        if (!snapshot.exists()) return null;
-        const data = snapshot.data();
+        const db = await getAdminDb();
+        const doc = await db.collection('prompts').doc(id).get();
+        if (!doc.exists) return null;
+        
+        const data = doc.data();
+        if (!data) return null;
+
         return {
-            id: snapshot.id,
+            id: doc.id,
             ...data,
             createdAt: data.createdAt ? {
-                seconds: data.createdAt.seconds,
-                nanoseconds: data.createdAt.nanoseconds,
+                seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
+                nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
             } : null,
         } as any;
     } catch (error) {
-        console.error("Error fetching prompt by id on server:", error);
+        console.error("[Server Cache] Error fetching prompt by id with Admin SDK:", error);
         return null;
     }
 }
