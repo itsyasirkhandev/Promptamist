@@ -5,20 +5,23 @@ import { getPrompts } from "@/lib/api";
 import { PromptsGrid } from "./PromptsGrid";
 import { usePrompts } from "@/hooks/use-prompts";
 
+import { PromptsSkeleton } from "./PromptsSkeleton";
+
 export function PromptsList({ userId }: { userId: string }) {
   const { prompts: realtimePrompts, isLoaded: isRealtimeLoaded } = usePrompts();
   const [cachedPrompts, setCachedPrompts] = useState<any[] | null>(null);
-  const [error, setError] = useState<boolean>(false);
+  const [isCacheLoaded, setIsCacheLoaded] = useState(false);
 
   useEffect(() => {
     // Attempt to fetch from the server-side cache
     getPrompts(userId)
       .then((data) => {
         setCachedPrompts(data);
+        setIsCacheLoaded(true);
       })
       .catch((err) => {
         console.warn("Server-side fetch failed, falling back to client-side:", err);
-        setError(true);
+        setIsCacheLoaded(true);
       });
   }, [userId]);
 
@@ -30,6 +33,15 @@ export function PromptsList({ userId }: { userId: string }) {
     return realtimePrompts;
   }, [cachedPrompts, realtimePrompts]);
 
+  // Show skeleton if:
+  // 1. Cache hasn't finished checking AND
+  // 2. Real-time Firebase data hasn't finished initial load
+  if (!isCacheLoaded && !isRealtimeLoaded) {
+    return <PromptsSkeleton />;
+  }
+  
+  // If we've finished loading and still have no prompts, PromptsGrid will show EmptyState
+  // This now only happens after we are SURE there are no prompts in either source.
   const allTags = useMemo(() => {
     const tags = new Set(displayPrompts.flatMap((p) => p.tags || []));
     return Array.from(tags).sort();
