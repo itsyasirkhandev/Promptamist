@@ -12,13 +12,25 @@ async function getAdminDb() {
         const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
         if (privateKey && clientEmail) {
-            console.log("[Server Cache] Initializing Admin SDK with Service Account");
+            // Robust private key parsing
+            let formattedKey = privateKey;
+            
+            // Remove surrounding quotes if they exist
+            if (formattedKey.startsWith("'") && formattedKey.endsWith("'")) {
+                formattedKey = formattedKey.slice(1, -1);
+            }
+            if (formattedKey.startsWith("'") && formattedKey.endsWith("'")) {
+                formattedKey = formattedKey.slice(1, -1);
+            }
+            
+            // Replace escaped newlines with actual newlines
+            formattedKey = formattedKey.replace(/\\n/g, '\n');
+
             admin.initializeApp({
                 credential: admin.credential.cert({
                     projectId,
                     clientEmail,
-                    // Replace escaped newlines in the private key
-                    privateKey: privateKey.replace(/\n/g, '\n'),
+                    privateKey: formattedKey,
                 }),
             });
         } else {
@@ -32,7 +44,6 @@ async function getAdminDb() {
 }
 
 export async function getPromptsCached(userId: string): Promise<Prompt[]> {
-  console.log(`[Server Cache] getPromptsCached called for: ${userId}`);
   cacheLife('minutes');
   cacheTag(`prompts-user-${userId}`);
 
@@ -44,8 +55,6 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
       .orderBy('createdAt', 'desc')
       .get();
 
-    console.log(`[Server Cache] Admin SDK fetched ${snapshot.docs.length} prompts for ${userId}`);
-    
     return snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -66,7 +75,6 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
 }
 
 export async function getPromptByIdCached(id: string): Promise<Prompt | null> {
-    console.log(`[Server Cache] getPromptByIdCached called for: ${id}`);
     cacheLife('minutes');
     cacheTag(`prompt-${id}`);
 
