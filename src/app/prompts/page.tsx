@@ -1,9 +1,8 @@
+
 import { cookies } from "next/headers";
 import { AppLayout } from "@/components/AppLayout";
 import { PromptsPageClient } from "@/components/PromptsPageClient";
 import { PromptsList } from "@/components/PromptsList";
-import { Suspense } from "react";
-import { PromptsSkeleton } from "@/components/PromptsSkeleton";
 import { getPrompts } from "@/lib/api";
 
 export default async function PromptsPage() {
@@ -29,13 +28,11 @@ export default async function PromptsPage() {
   return (
     <AppLayout>
         <PromptsPageClient userId={userId || ""}>
-            <Suspense fallback={<PromptsSkeleton />}>
-                <PromptsList 
-                    userId={userId || ""} 
-                    initialPrompts={initialPrompts} 
-                    serverSideFetched={serverSideFetched}
-                />
-            </Suspense>
+            <PromptsList 
+                userId={userId || ""} 
+                initialPrompts={initialPrompts} 
+                serverSideFetched={serverSideFetched}
+            />
         </PromptsPageClient>
     </AppLayout>
   );
