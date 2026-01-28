@@ -1,5 +1,7 @@
 
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { CreatePromptForm } from '@/components/CreatePromptForm';
@@ -11,7 +13,14 @@ export const metadata: Metadata = {
   description: 'Add a new, reusable AI prompt to your personal library. Write a title, content, and tags to easily find it later.',
 };
 
-export default function CreatePromptPage() {
+export default async function CreatePromptPage() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get('session-uid')?.value;
+
+  if (!userId) {
+    redirect('/auth');
+  }
+
   return (
     <AppLayout>
       <div className="mb-8">
