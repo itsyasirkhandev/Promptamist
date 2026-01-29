@@ -1,7 +1,7 @@
 'use cache';
 
 import { cacheLife, cacheTag } from 'next/cache';
-import type { Prompt } from './types';
+import type { Prompt, UserProfile } from './types';
 import { PromptSchema } from './schemas';
 
 async function getAdminDb() {
@@ -54,6 +54,8 @@ async function getAdminDb() {
 
 function mapToPrompt(doc: any): Prompt {
     const data = doc.data();
+    if (!data) throw new Error(`Document ${doc.id} has no data`);
+    
     const promptData = {
         id: doc.id,
         title: data.title || '',
@@ -70,6 +72,39 @@ function mapToPrompt(doc: any): Prompt {
     };
 
     return PromptSchema.parse(promptData);
+}
+
+export async function getUserProfileCached(userId: string): Promise<UserProfile | null> {
+    console.log(`[use cache] getUserProfileCached called for ${userId.slice(0, 5)}...`);
+    cacheLife('days'); // Profiles change very rarely
+    cacheTag(`user-profile-${userId}`);
+
+    try {
+        const db = await getAdminDb();
+        const doc = await db.collection('users').doc(userId).get();
+        if (!doc.exists) return null;
+        
+        const data = doc.data();
+        if (!data) return null;
+
+        return {
+            uid: userId,
+            email: data.email || null,
+            displayName: data.displayName || null,
+            photoURL: data.photoURL || null,
+            createdAt: data.createdAt ? {
+                seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
+                nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
+            } : null,
+            updatedAt: data.updatedAt ? {
+                seconds: data.updatedAt._seconds !== undefined ? data.updatedAt._seconds : data.updatedAt.seconds,
+                nanoseconds: data.updatedAt._nanoseconds !== undefined ? data.updatedAt._nanoseconds : data.updatedAt.nanoseconds,
+            } : null,
+        } as UserProfile;
+    } catch (error) {
+        console.error("[Server Cache] Error fetching profile with Admin SDK:", error);
+        return null;
+    }
 }
 
 export async function getPromptsCached(userId: string): Promise<Prompt[]> {

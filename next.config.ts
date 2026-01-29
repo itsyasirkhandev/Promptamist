@@ -20,6 +20,19 @@ const nextConfig: NextConfig = {
         '@radix-ui/react-toast',
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'browsing-topics=(), run-ad-auction=(), join-ad-interest-group=(), private-aggregation=()',
+          },
+        ],
+      },
+    ];
+  },
   cacheComponents: true,
   typescript: {
     ignoreBuildErrors: true,

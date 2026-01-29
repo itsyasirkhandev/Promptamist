@@ -12,6 +12,8 @@ import { useAuth, useFirestore } from "@/firebase/provider"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { userProfileConverter } from "@/firebase/converters"
 import type { UserProfile } from "@/lib/types"
+import { getUserProfile } from "@/lib/api"
+import { revalidateUserProfile } from "@/lib/actions"
 
 export type UserData = {
   user: User | null;
@@ -66,22 +68,35 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         setClaims(tokenResult)
 
         // Sync/Fetch profile
-        const profileRef = doc(firestore, "users", firebaseUser.uid).withConverter(userProfileConverter);
         try {
-            const profileSnap = await getDoc(profileRef);
-            if (!profileSnap.exists()) {
-                const newProfile: UserProfile = {
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    displayName: firebaseUser.displayName,
-                    photoURL: firebaseUser.photoURL,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
-                };
-                await setDoc(profileRef, newProfile);
-                setProfile(newProfile);
+            // 1. Try to get from server-side cache first (much faster if cached)
+            const cachedProfile = await getUserProfile(firebaseUser.uid);
+            if (cachedProfile) {
+                setProfile(cachedProfile);
             } else {
-                setProfile(profileSnap.data());
+                // 2. Fallback to direct Firestore fetch if not in cache
+                const profileRef = doc(firestore, "users", firebaseUser.uid).withConverter(userProfileConverter);
+                const profileSnap = await getDoc(profileRef);
+                
+                if (!profileSnap.exists()) {
+                    const newProfile: UserProfile = {
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        displayName: firebaseUser.displayName,
+                        photoURL: firebaseUser.photoURL,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
+                    };
+                    await setDoc(profileRef, newProfile);
+                    setProfile(newProfile);
+                    // Invalidate cache so the next request gets the new profile
+                    await revalidateUserProfile(firebaseUser.uid);
+                } else {
+                    const p = profileSnap.data();
+                    setProfile(p);
+                    // Update cache for future requests
+                    await revalidateUserProfile(firebaseUser.uid);
+                }
             }
         } catch (err) {
             console.error("Error fetching/syncing user profile:", err);
