@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UseTemplateDialog } from "./UseTemplateDialog";
+import { cn } from "@/lib/utils";
 
 
 interface PromptCardProps {
@@ -44,6 +45,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
   const [hasCopied, setHasCopied] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isUseTemplateOpen, setIsUseTemplateOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const { deletePrompt } = usePrompts();
 
@@ -59,18 +61,34 @@ export function PromptCard({ prompt }: PromptCardProps) {
     }, 2000);
   };
   
-  const handleDelete = () => {
-    deletePrompt(prompt.id);
-    toast({
-      title: "Prompt Deleted",
-      description: "Your prompt has been successfully removed.",
-    });
+  const handleDelete = async () => {
+    // 1. Close dialog immediately to prevent Radix from locking the body 
+    // if the component unmounts during deletion
     setIsDeleteDialogOpen(false);
+    setIsDeleting(true);
+    
+    try {
+      await deletePrompt(prompt.id);
+      toast({
+        title: "Prompt Deleted",
+        description: "Your prompt has been successfully removed.",
+      });
+    } catch (error) {
+      setIsDeleting(false);
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: "There was an error deleting your prompt.",
+      });
+    }
   };
 
   return (
     <>
-    <Card className="flex h-full flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <Card className={cn(
+        "flex h-full flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
+        isDeleting && "opacity-50 pointer-events-none grayscale"
+    )}>
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
           <div className="flex-1">
@@ -81,7 +99,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" disabled={isDeleting}>
                 <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">More options</span>
               </Button>
@@ -119,12 +137,12 @@ export function PromptCard({ prompt }: PromptCardProps) {
       </CardContent>
       <CardFooter>
         {prompt.isTemplate ? (
-            <Button onClick={() => setIsUseTemplateOpen(true)} className="w-full">
+            <Button onClick={() => setIsUseTemplateOpen(true)} className="w-full" disabled={isDeleting}>
                 <Wand2 className="mr-2 h-4 w-4" />
                 Use Template
             </Button>
         ) : (
-            <Button onClick={handleCopy} className="w-full">
+            <Button onClick={handleCopy} className="w-full" disabled={isDeleting}>
               {hasCopied ? (
                 <Check className="mr-2 h-4 w-4" />
               ) : (
@@ -147,7 +165,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
