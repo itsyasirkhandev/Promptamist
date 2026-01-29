@@ -50,13 +50,22 @@ export function PromptCard({ prompt }: PromptCardProps) {
   const { deletePrompt } = usePrompts();
 
   // CLEANUP HACK: If this component unmounts while isDeleting is true, 
-  // ensure we force the document body to be interactive again. 
-  // Radix sometimes leaves the body locked if the dialog's parent is removed from DOM.
+  // ensure we force the document body and html to be interactive again. 
+  // Radix often leaves the body/html locked if the dialog's parent is removed from DOM during a transition.
   useEffect(() => {
     return () => {
       if (isDeleting) {
-        document.body.style.pointerEvents = 'auto';
-        document.body.style.overflow = 'auto';
+        const forceCleanup = () => {
+            document.body.style.pointerEvents = 'auto';
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.pointerEvents = 'auto';
+            document.documentElement.style.overflow = 'auto';
+        };
+        
+        forceCleanup();
+        // Multiple passes to ensure we catch any late-applied styles from Radix
+        setTimeout(forceCleanup, 0);
+        setTimeout(forceCleanup, 100);
       }
     };
   }, [isDeleting]);
@@ -74,14 +83,14 @@ export function PromptCard({ prompt }: PromptCardProps) {
   };
   
   const handleDelete = async () => {
-    // 1. Start closing the dialog
+    // 1. Close dialog immediately
     setIsDeleteDialogOpen(false);
-    // 2. Mark as deleting to trigger UI state
+    // 2. Mark as deleting
     setIsDeleting(true);
     
-    // 3. DELAY the actual deletion. This gives the Radix AlertDialog 
-    // enough time to finish its 'close' animation and clean up the <body> lock 
-    // before the entire PromptCard is removed from the DOM by the parent.
+    // 3. DELAY the actual deletion significantly. 
+    // router.refresh() causes a full list re-render, which unmounts the card.
+    // 300ms gives plenty of time for Radix Portal to unmount gracefully first.
     setTimeout(async () => {
         try {
           await deletePrompt(prompt.id);
@@ -97,14 +106,14 @@ export function PromptCard({ prompt }: PromptCardProps) {
             description: "There was an error deleting your prompt.",
           });
         }
-    }, 150); // 150ms is usually enough for the animation to start/finish
+    }, 300);
   };
 
   return (
     <>
     <Card className={cn(
         "flex h-full flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
-        isDeleting && "opacity-50 pointer-events-none grayscale"
+        isDeleting && "opacity-50 pointer-events-none grayscale scale-95"
     )}>
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
