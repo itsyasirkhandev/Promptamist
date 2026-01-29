@@ -102,7 +102,7 @@ export const ContentEditable = forwardRef<HTMLDivElement, ContentEditableProps>(
         target: {
           value: newText
         }
-      } as React.ChangeEvent<HTMLInputElement>;
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
       onChange(evt);
     }
   };
@@ -111,7 +111,7 @@ export const ContentEditable = forwardRef<HTMLDivElement, ContentEditableProps>(
     return (
         <Textarea
             value={html}
-            onChange={(e:any) => onChange(e)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e as unknown as React.ChangeEvent<HTMLInputElement>)}
             className={cn("min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", className)}
             placeholder="The main body of your prompt..."
         />

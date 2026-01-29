@@ -31,12 +31,14 @@ import { CreateFieldDialog } from "./CreateFieldDialog";
 import { ContentEditable } from "./ContentEditable";
 import { cn } from "@/lib/utils";
 
+import { PromptFieldSchema } from "@/lib/schemas";
+
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title cannot exceed 100 characters."),
   content: z.string().min(10, "Prompt content must be at least 10 characters.").max(10000, "Content cannot exceed 10000 characters."),
   tags: z.array(z.string().min(1, "Tag cannot be empty.").max(30, "Tag cannot exceed 30 characters.")).max(10, "You can add up to 10 tags.").optional().default([]),
   isTemplate: z.boolean().default(false),
-  fields: z.array(z.custom<PromptField>()).default([]),
+  fields: z.array(PromptFieldSchema).default([]),
 });
 
 const CONTEXT_MENU_ID = "prompt-editor-menu";

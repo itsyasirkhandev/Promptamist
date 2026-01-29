@@ -6,6 +6,7 @@ import { getPrompts } from "@/lib/api";
 import { PromptsGrid } from "./PromptsGrid";
 import { usePrompts } from "@/hooks/use-prompts";
 import { PromptsSkeleton } from "./PromptsSkeleton";
+import type { Prompt } from "@/lib/types";
 
 export function PromptsList({ 
     userId, 
@@ -13,13 +14,13 @@ export function PromptsList({
     serverSideFetched = false
 }: { 
     userId: string;
-    initialPrompts?: any[];
+    initialPrompts?: Prompt[];
     serverSideFetched?: boolean;
 }) {
   const { prompts: realtimePrompts, isLoaded: isRealtimeLoaded } = usePrompts();
   
   // Directly use server data if available, avoiding state-driven flickers during hydration
-  const [fallbackPrompts, setFallbackPrompts] = useState<any[] | null>(null);
+  const [fallbackPrompts, setFallbackPrompts] = useState<Prompt[] | null>(null);
   const [isFallbackLoaded, setIsFallbackLoaded] = useState(false);
 
   useEffect(() => {

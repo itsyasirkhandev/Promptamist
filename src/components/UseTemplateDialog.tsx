@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useForm, Control, useWatch, Controller } from 'react-hook-form';
+import { useForm, Control, useWatch, Controller, UseFormReturn, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
@@ -22,14 +23,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 function generateSchemaAndDefaults(fields: PromptField[]) {
     if (!fields || fields.length === 0) {
-        return { dynamicSchema: z.object({}), defaultValues: {} };
+        return { dynamicSchema: z.object({}), defaultValues: {} as FieldValues };
     }
 
-    const shape: { [key: string]: z.ZodType<any, any> } = {};
-    const defaults: { [key: string]: any } = {};
+    const shape: Record<string, z.ZodTypeAny> = {};
+    const defaults: Record<string, string | number | string[] | undefined> = {};
 
     fields.forEach(field => {
-        let schema;
+        let schema: z.ZodTypeAny;
         switch (field.type) {
             case 'number':
                 schema = z.preprocess(
@@ -77,10 +78,10 @@ function generateSchemaAndDefaults(fields: PromptField[]) {
         shape[field.name] = schema;
     });
 
-    return { dynamicSchema: z.object(shape), defaultValues: defaults };
+    return { dynamicSchema: z.object(shape), defaultValues: defaults as FieldValues };
 }
 
-const generatePromptString = (template: string, formValues: Record<string, any>): string => {
+const generatePromptString = (template: string, formValues: FieldValues): string => {
     let result = template;
     for (const key in formValues) {
         const value = formValues[key];
@@ -99,7 +100,7 @@ const generatePromptString = (template: string, formValues: Record<string, any>)
     return result.replace(/{{.*?}}/g, '');
 };
 
-function LivePreview({ control, template }: { control: Control<any>, template: string }) {
+function LivePreview({ control, template }: { control: Control<FieldValues>, template: string }) {
     const formValues = useWatch({ control });
     const [isCopied, setIsCopied] = useState(false);
     const { toast } = useToast();
@@ -161,7 +162,7 @@ function LivePreview({ control, template }: { control: Control<any>, template: s
     )
 }
 
-function TemplateFields({ control, prompt, form, onPaste }: { control: Control<any>, prompt: Prompt, form: any, onPaste: (fieldName: string) => void }) {
+function TemplateFields({ control, prompt, form, onPaste }: { control: Control<FieldValues>, prompt: Prompt, form: UseFormReturn<FieldValues>, onPaste: (fieldName: string) => void }) {
     return (
         <Form {...form}>
             <form className="space-y-4" key={prompt.id}>
@@ -269,7 +270,7 @@ export function UseTemplateDialog({ isOpen, onClose, prompt }: UseTemplateDialog
     return generateSchemaAndDefaults(prompt.fields || []);
   }, [prompt]);
 
-  const form = useForm<z.infer<typeof dynamicSchema>>({
+  const form = useForm<FieldValues>({
     resolver: zodResolver(dynamicSchema),
     defaultValues,
     mode: 'onChange'

@@ -61,13 +61,18 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
         const data = doc.data();
         return {
             id: doc.id,
-            ...data,
+            title: data.title || '',
+            content: data.content || '',
+            tags: data.tags || [],
+            userId: data.userId || '',
+            isTemplate: data.isTemplate || false,
+            fields: data.fields || [],
             // Convert Admin Timestamp to serializable object
             createdAt: data.createdAt ? {
                 seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
                 nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
             } : null,
-        } as any;
+        } satisfies Prompt;
     });
   } catch (error) {
     console.error("[Server Cache] Error fetching prompts with Admin SDK:", error);
@@ -90,12 +95,17 @@ export async function getPromptByIdCached(id: string): Promise<Prompt | null> {
 
         return {
             id: doc.id,
-            ...data,
+            title: data.title || '',
+            content: data.content || '',
+            tags: data.tags || [],
+            userId: data.userId || '',
+            isTemplate: data.isTemplate || false,
+            fields: data.fields || [],
             createdAt: data.createdAt ? {
                 seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
                 nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
             } : null,
-        } as any;
+        } satisfies Prompt;
     } catch (error) {
         console.error("[Server Cache] Error fetching prompt by id with Admin SDK:", error);
         return null;

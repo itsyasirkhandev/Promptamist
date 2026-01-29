@@ -10,12 +10,12 @@ type IntersectionObserverOptions = {
   triggerOnce?: boolean;
 };
 
-export function useIntersectionObserver(
+export function useIntersectionObserver<T extends Element = HTMLDivElement>(
   options: IntersectionObserverOptions = {}
-): [RefObject<any>, boolean] {
+): [RefObject<T>, boolean] {
   const { threshold = 0.1, root = null, rootMargin = '0px', triggerOnce = true } = options;
   const [isIntersecting, setIsIntersecting] = useState(false);
-  const ref = useRef<any>(null);
+  const ref = useRef<T>(null);
 
   useEffect(() => {
     const element = ref.current;
