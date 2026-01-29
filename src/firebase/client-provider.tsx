@@ -1,11 +1,8 @@
 "use client"
 
 import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
   useState,
+  use,
 } from "react"
 
 import { initializeFirebase, FirebaseProvider } from "@/firebase/index"
@@ -15,12 +12,13 @@ import type { UserProfile } from "@/lib/types"
 
 export const FirebaseClientProvider = ({
   children,
-  initialProfile = null,
+  initialProfilePromise,
 }: {
   children: React.ReactNode;
-  initialProfile?: UserProfile | null;
+  initialProfilePromise?: Promise<UserProfile | null>;
 }) => {
-  const [instances, setInstances] = useState(() => initializeFirebase())
+  const [instances] = useState(() => initializeFirebase())
+  const initialProfile = initialProfilePromise ? use(initialProfilePromise) : null;
 
   return (
     <FirebaseProvider {...instances}>

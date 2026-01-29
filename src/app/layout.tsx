@@ -45,23 +45,15 @@ export const metadata: Metadata = {
   },
 };
 
-async function ServerContextProvider({ children }: { children: React.ReactNode }) {
-    const cookieStore = await cookies();
-    const uid = cookieStore.get('session-uid')?.value;
-    const initialProfile = uid ? await getUserProfile(uid) : null;
-
-    return (
-        <FirebaseClientProvider initialProfile={initialProfile}>
-            {children}
-        </FirebaseClientProvider>
-    );
-}
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const uid = cookieStore.get('session-uid')?.value;
+  const initialProfilePromise = uid ? getUserProfile(uid) : Promise.resolve(null);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -78,10 +70,10 @@ export default function RootLayout({
           enableSystem
         >
           <Suspense fallback={null}>
-            <ServerContextProvider>
+            <FirebaseClientProvider initialProfilePromise={initialProfilePromise}>
                 <AuthStateGate>{children}</AuthStateGate>
               <Toaster />
-            </ServerContextProvider>
+            </FirebaseClientProvider>
           </Suspense>
         </ThemeProvider>
       </body>
