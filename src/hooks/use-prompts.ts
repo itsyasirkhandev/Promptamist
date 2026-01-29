@@ -75,9 +75,8 @@ export function usePrompts() {
 
     try {
         await addDoc(promptsRef, newPrompt);
-        // Server cache invalidation is still good for SEO/initial load
-        await revalidateUserPrompts(user.uid);
-        // 2. Refresh the current route to pull new cached data
+        // Fire and forget revalidation in the background
+        revalidateUserPrompts(user.uid).catch(console.error);
         router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -86,19 +85,18 @@ export function usePrompts() {
             requestResourceData: newPrompt,
         }));
     }
-  }, [firestore, user]);
+  }, [firestore, user, router]);
 
   const updatePrompt = useCallback(async (promptId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) => {
     if (!firestore || !user) return;
     const promptRef = doc(firestore, 'prompts', promptId);
     try {
         await updateDoc(promptRef, updatedData);
-        // 1. Invalidate Server Cache in parallel
-        await Promise.all([
+        // Fire and forget revalidation in the background
+        Promise.all([
             revalidateUserPrompts(user.uid),
             revalidatePrompt(promptId)
-        ]);
-        // 2. Refresh the current route to pull new cached data
+        ]).catch(console.error);
         router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -114,12 +112,11 @@ export function usePrompts() {
     const promptRef = doc(firestore, 'prompts', promptId);
     try {
         await deleteDoc(promptRef);
-        // 1. Invalidate Server Cache in parallel
-        await Promise.all([
+        // Fire and forget revalidation in the background
+        Promise.all([
             revalidateUserPrompts(user.uid),
             revalidatePrompt(promptId)
-        ]);
-        // 2. Refresh the current route to pull new cached data
+        ]).catch(console.error);
         router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({

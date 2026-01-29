@@ -19,7 +19,6 @@ export function PromptsList({
 }) {
   const { prompts: realtimePrompts, isLoaded: isRealtimeLoaded } = usePrompts();
   
-  // Directly use server data if available, avoiding state-driven flickers during hydration
   const [fallbackPrompts, setFallbackPrompts] = useState<Prompt[] | null>(null);
   const [isFallbackLoaded, setIsFallbackLoaded] = useState(false);
 
@@ -37,11 +36,13 @@ export function PromptsList({
 
   // Determine exactly what to show with zero-delay logic
   const displayPrompts = useMemo(() => {
-    // 1. If we have server-side data, use it immediately (it's the cached source of truth)
-    if (serverSideFetched) return initialPrompts;
-
-    // 2. If real-time fallback data is loaded and is valid, use it
+    // 1. If real-time data is loaded, it's ALWAYS the most up-to-date source.
+    // We prioritize it to ensure instant feedback after mutations (create/update/delete).
     if (isRealtimeLoaded) return realtimePrompts;
+
+    // 2. If real-time is still loading, but we have server-side data, 
+    // use it immediately as a fast-hydration starting point.
+    if (serverSideFetched) return initialPrompts;
     
     // 3. Use client-side manual fallback if server failed
     if (fallbackPrompts) return fallbackPrompts;
@@ -55,16 +56,16 @@ export function PromptsList({
   }, [displayPrompts]);
 
   // SKELETON LOGIC:
-  // Only show skeleton if we have absolutely no data from any source yet
+  // Show skeleton if we have absolutely no data from any source yet
   const hasData = isRealtimeLoaded || serverSideFetched || isFallbackLoaded;
   
   if (!hasData) {
     return <PromptsSkeleton />;
   }
 
-  // If we have data but it's empty, and real-time is still loading, 
-  // stay on skeleton to prevent "Empty Library" flash
-  if (displayPrompts.length === 0 && !isRealtimeLoaded) {
+  // Even if we have server data, if it's empty and real-time hasn't confirmed yet,
+  // stay on skeleton to prevent "Empty Library" flash on first login.
+  if (displayPrompts.length === 0 && !isRealtimeLoaded && !serverSideFetched) {
     return <PromptsSkeleton />;
   }
   
