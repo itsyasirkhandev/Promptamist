@@ -88,9 +88,11 @@ export function usePrompts() {
     const promptRef = doc(firestore, 'prompts', promptId);
     try {
         await updateDoc(promptRef, updatedData);
-        // 1. Invalidate Server Cache
-        await revalidateUserPrompts(user.uid);
-        await revalidatePrompt(promptId);
+        // 1. Invalidate Server Cache in parallel
+        await Promise.all([
+            revalidateUserPrompts(user.uid),
+            revalidatePrompt(promptId)
+        ]);
         // 2. Refresh the current route to pull new cached data
         router.refresh();
     } catch (serverError) {
@@ -107,9 +109,11 @@ export function usePrompts() {
     const promptRef = doc(firestore, 'prompts', promptId);
     try {
         await deleteDoc(promptRef);
-        // 1. Invalidate Server Cache
-        await revalidateUserPrompts(user.uid);
-        await revalidatePrompt(promptId);
+        // 1. Invalidate Server Cache in parallel
+        await Promise.all([
+            revalidateUserPrompts(user.uid),
+            revalidatePrompt(promptId)
+        ]);
         // 2. Refresh the current route to pull new cached data
         router.refresh();
     } catch (serverError) {

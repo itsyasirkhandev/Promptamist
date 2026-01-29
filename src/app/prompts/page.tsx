@@ -7,6 +7,7 @@ import { PromptsList } from "@/components/PromptsList";
 import { getPrompts } from "@/lib/api";
 import { Suspense } from "react";
 import { PromptsSkeleton } from "@/components/PromptsSkeleton";
+import type { Prompt } from "@/lib/types";
 
 export default async function PromptsPage() {
   const cookieStore = await cookies();
@@ -31,7 +32,7 @@ async function PromptsDataStreamer({ userId }: { userId: string }) {
     // This component runs on the server. Because it is wrapped in Suspense,
     // the page shell above it will be sent to the browser immediately
     // without waiting for this fetch to finish.
-    let initialPrompts = [];
+    let initialPrompts: Prompt[] = [];
     let serverSideFetched = false;
     
     try {

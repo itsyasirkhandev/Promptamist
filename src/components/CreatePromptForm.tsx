@@ -95,9 +95,9 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     if (!currentFields) return;
 
     const placeholdersInContent = watchedContent.match(/{{(.*?)}}/g) || [];
-    const fieldNamesInContent = placeholdersInContent.map(p => p.substring(2, p.length - 2).trim());
+    const fieldNamesInContent = new Set(placeholdersInContent.map(p => p.substring(2, p.length - 2).trim()));
 
-    const fieldsToKeep = currentFields.filter(field => fieldNamesInContent.includes(field.name));
+    const fieldsToKeep = currentFields.filter(field => fieldNamesInContent.has(field.name));
 
     if (fieldsToKeep.length !== currentFields.length) {
         form.setValue('fields', fieldsToKeep, { shouldValidate: true, shouldDirty: true });

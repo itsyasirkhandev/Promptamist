@@ -103,18 +103,18 @@ export function PromptCard({ prompt }: PromptCardProps) {
       </CardHeader>
       <CardContent className="flex-grow">
         <div className="flex flex-wrap gap-2">
-          {prompt.isTemplate && <Badge variant="default" className="rounded-md">Template</Badge>}
+          {prompt.isTemplate ? <Badge variant="default" className="rounded-md">Template</Badge> : null}
           {prompt.tags?.slice(0, 3).map((tag) => (
             <Badge key={tag} variant="secondary" className="rounded-md">
               {tag}
             </Badge>
           ))}
-          {prompt.tags?.length > 3 && (
+          {prompt.tags?.length > 3 ? (
             <Badge variant="outline" className="rounded-md">
               +{prompt.tags.length - 3}
             </Badge>
-          )}
-          {prompt.tags?.length === 0 && !prompt.isTemplate && <p className="text-sm text-muted-foreground">No tags</p>}
+          ) : null}
+          {prompt.tags?.length === 0 && !prompt.isTemplate ? <p className="text-sm text-muted-foreground">No tags</p> : null}
         </div>
       </CardContent>
       <CardFooter>

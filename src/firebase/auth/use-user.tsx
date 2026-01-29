@@ -32,8 +32,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     if (auth) {
-      await auth.signOut();
-      await fetch('/api/auth/session', { method: 'DELETE' });
+      await Promise.all([
+        auth.signOut(),
+        fetch('/api/auth/session', { method: 'DELETE' })
+      ]);
     }
   };
 
