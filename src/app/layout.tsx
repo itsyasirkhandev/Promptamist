@@ -1,16 +1,14 @@
 
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import Link from 'next/link';
+import { cookies } from 'next/headers';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
-import { Bot } from "lucide-react";
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { AuthStateGate } from '@/components/auth/AuthStateGate';
-import { UserProfile } from '@/components/auth/UserProfile';
-import { AppLayout } from '@/components/AppLayout';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { getUserProfile } from '@/lib/api';
 
 const siteUrl = "https://promptamist.vercel.app/";
 
@@ -47,6 +45,18 @@ export const metadata: Metadata = {
   },
 };
 
+async function ServerContextProvider({ children }: { children: React.ReactNode }) {
+    const cookieStore = await cookies();
+    const uid = cookieStore.get('session-uid')?.value;
+    const initialProfile = uid ? await getUserProfile(uid) : null;
+
+    return (
+        <FirebaseClientProvider initialProfile={initialProfile}>
+            {children}
+        </FirebaseClientProvider>
+    );
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -68,10 +78,10 @@ export default function RootLayout({
           enableSystem
         >
           <Suspense fallback={null}>
-            <FirebaseClientProvider>
+            <ServerContextProvider>
                 <AuthStateGate>{children}</AuthStateGate>
               <Toaster />
-            </FirebaseClientProvider>
+            </ServerContextProvider>
           </Suspense>
         </ThemeProvider>
       </body>
