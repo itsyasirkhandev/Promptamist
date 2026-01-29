@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Copy, Check, MoreVertical, Edit, Trash2, Wand2 } from "lucide-react";
 import type { Prompt } from "@/lib/types";
@@ -49,6 +49,18 @@ export function PromptCard({ prompt }: PromptCardProps) {
   const { toast } = useToast();
   const { deletePrompt } = usePrompts();
 
+  // CLEANUP HACK: If this component unmounts while isDeleting is true, 
+  // ensure we force the document body to be interactive again. 
+  // Radix sometimes leaves the body locked if the dialog's parent is removed from DOM.
+  useEffect(() => {
+    return () => {
+      if (isDeleting) {
+        document.body.style.pointerEvents = 'auto';
+        document.body.style.overflow = 'auto';
+      }
+    };
+  }, [isDeleting]);
+
   const handleCopy = () => {
     navigator.clipboard.writeText(prompt.content);
     setHasCopied(true);
@@ -62,25 +74,30 @@ export function PromptCard({ prompt }: PromptCardProps) {
   };
   
   const handleDelete = async () => {
-    // 1. Close dialog immediately to prevent Radix from locking the body 
-    // if the component unmounts during deletion
+    // 1. Start closing the dialog
     setIsDeleteDialogOpen(false);
+    // 2. Mark as deleting to trigger UI state
     setIsDeleting(true);
     
-    try {
-      await deletePrompt(prompt.id);
-      toast({
-        title: "Prompt Deleted",
-        description: "Your prompt has been successfully removed.",
-      });
-    } catch (error) {
-      setIsDeleting(false);
-      toast({
-        variant: "destructive",
-        title: "Delete Failed",
-        description: "There was an error deleting your prompt.",
-      });
-    }
+    // 3. DELAY the actual deletion. This gives the Radix AlertDialog 
+    // enough time to finish its 'close' animation and clean up the <body> lock 
+    // before the entire PromptCard is removed from the DOM by the parent.
+    setTimeout(async () => {
+        try {
+          await deletePrompt(prompt.id);
+          toast({
+            title: "Prompt Deleted",
+            description: "Your prompt has been successfully removed.",
+          });
+        } catch (error) {
+          setIsDeleting(false);
+          toast({
+            variant: "destructive",
+            title: "Delete Failed",
+            description: "There was an error deleting your prompt.",
+          });
+        }
+    }, 150); // 150ms is usually enough for the animation to start/finish
   };
 
   return (
@@ -163,10 +180,14 @@ export function PromptCard({ prompt }: PromptCardProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <Button 
+                variant="destructive" 
+                onClick={handleDelete}
+                disabled={isDeleting}
+            >
               {isDeleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

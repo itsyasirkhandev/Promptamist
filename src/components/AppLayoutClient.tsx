@@ -19,7 +19,11 @@ const NAV_LINKS = [
 ];
 
 export function AppLayoutClient({ isLandingPage }: { isLandingPage: boolean }) {
-  const { user, isLoaded } = useUser();
+  const { user, profile, isLoaded } = useUser();
+
+  // For landing page buttons, we check both profile (from server-side cache) and user (from client-side auth)
+  // this allows the 'Go to Dashboard' button to show up instantly.
+  const hasUser = !!(profile || user);
 
   if (isLandingPage) {
     return (
@@ -42,9 +46,9 @@ export function AppLayoutClient({ isLandingPage }: { isLandingPage: boolean }) {
              <div className="flex items-center gap-2">
                 <div className="hidden md:flex items-center gap-2">
                   <ThemeToggle />
-                  { !isLoaded ? (
-                      <Skeleton className="h-10 w-48" />
-                  ) : user ? (
+                  { !isLoaded && !hasUser ? (
+                      <Skeleton className="h-10 w-40" />
+                  ) : hasUser ? (
                       <Button asChild>
                           <Link href="/prompts">
                               <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -94,9 +98,9 @@ export function AppLayoutClient({ isLandingPage }: { isLandingPage: boolean }) {
                             </div>
                         </ScrollArea>
                         <div className="border-t p-6 flex flex-col gap-4 flex-shrink-0">
-                        { !isLoaded ? (
+                        { !isLoaded && !hasUser ? (
                             <Skeleton className="h-10 w-full" />
-                        ) : user ? (
+                        ) : hasUser ? (
                             <SheetClose asChild>
                             <Button asChild size="lg">
                                 <Link href="/prompts">
@@ -133,7 +137,7 @@ export function AppLayoutClient({ isLandingPage }: { isLandingPage: boolean }) {
 
   return (
     <>
-        <Link href={user ? "/prompts" : "/"} className="flex items-center space-x-2">
+        <Link href={hasUser ? "/prompts" : "/"} className="flex items-center space-x-2">
             <Logo className="h-6 w-6" />
             <span className="font-bold inline-block">Promptamist</span>
         </Link>
