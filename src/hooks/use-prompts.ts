@@ -9,12 +9,13 @@ import {
   serverTimestamp,
   query,
   where,
-  getDocs,
+  onSnapshot,
   orderBy,
   doc,
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
+import { promptConverter } from '@/firebase/converters';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { revalidateUserPrompts, revalidatePrompt } from '@/lib/actions';
@@ -34,46 +35,48 @@ export function usePrompts() {
       return;
     }
 
-    // One-time fetch as a fallback/sync mechanism
-    const fetchPrompts = async () => {
-        const promptsRef = collection(firestore, 'prompts');
-        const q = query(
-            promptsRef,
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc')
-        );
+    const promptsRef = collection(firestore, 'prompts').withConverter(promptConverter);
+    const q = query(
+        promptsRef,
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+    );
 
-        try {
-            const snapshot = await getDocs(q);
-            const newPrompts = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            } as Prompt));
+    const unsubscribe = onSnapshot(q, 
+        (snapshot) => {
+            const newPrompts = snapshot.docs.map(doc => doc.data());
             setPrompts(newPrompts);
             setIsLoaded(true);
-        } catch (err) {
-            console.error("Client-side fetch failed", err);
+        },
+        (err) => {
+            console.error("Firestore snapshot failed", err);
+            // Handle specific errors like permission denied
+            if (err.code === 'permission-denied') {
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: 'prompts',
+                    operation: 'list',
+                }));
+            }
             setIsLoaded(true);
         }
-    };
+    );
 
-    fetchPrompts();
+    return () => unsubscribe();
   }, [firestore, user]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
     if (!firestore || !user) return;
-    const promptsRef = collection(firestore, 'prompts');
+    const promptsRef = collection(firestore, 'prompts').withConverter(promptConverter);
     const newPrompt = {
       ...promptData,
       userId: user.uid,
-      createdAt: serverTimestamp(),
-    };
+      createdAt: serverTimestamp() as any, // Cast as any because serverTimestamp() is a FieldValue, but Prompt expects {seconds, nanoseconds} after fetch
+    } as Prompt;
+
     try {
         await addDoc(promptsRef, newPrompt);
-        // 1. Invalidate Server Cache
+        // Server cache invalidation is still good for SEO/initial load
         await revalidateUserPrompts(user.uid);
-        // 2. Refresh the current route to pull new cached data
-        router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: 'prompts',
@@ -81,7 +84,7 @@ export function usePrompts() {
             requestResourceData: newPrompt,
         }));
     }
-  }, [firestore, user, router]);
+  }, [firestore, user]);
 
   const updatePrompt = useCallback(async (promptId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) => {
     if (!firestore || !user) return;

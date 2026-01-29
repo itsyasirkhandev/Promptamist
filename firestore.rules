@@ -35,16 +35,22 @@ service cloud.firestore {
     }
 
     /**
-     * @description Validates the character limits for the prompt fields.
+     * @description Validates the character limits and types for the prompt fields.
      */
     function validatePromptData(data) {
-      return data.title.size() <= 100
-        && data.content.size() <= 5000
-        && (data.tags.size() <= 30)
-        && (!('templateInput' in data) || data.templateInput.size() <= 100)
-        && (!('textArea' in data) || data.textArea.size() <= 3000)
-        && (!('choices' in data) || data.choices.size() <= 100)
-        && (!('number' in data) || string(data.number).size() <= 100);
+      let requiredFields = ['title', 'content', 'tags', 'userId', 'createdAt'];
+      let optionalFields = ['isTemplate', 'fields'];
+      let allFields = requiredFields.concat(optionalFields);
+      
+      return data.keys().hasAll(requiredFields)
+        && data.keys().hasOnly(allFields)
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+        && data.content is string && data.content.size() > 0 && data.content.size() <= 5000
+        && data.tags is list && data.tags.size() <= 30
+        && data.userId == request.auth.uid
+        && data.createdAt is timestamp
+        && (!('isTemplate' in data) || data.isTemplate is bool)
+        && (!('fields' in data) || data.fields is list && data.fields.size() <= 50);
     }
     
     /**
@@ -60,8 +66,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if false;
-      allow update: if false;
+      allow create: if isOwner(userId); // Allow users to create their own profile
+      allow update: if isOwner(userId); // Allow users to update their own profile
       allow delete: if false;
     }
 
@@ -69,21 +75,16 @@ service cloud.firestore {
      * @description Rule for /prompts/{promptId} documents.
      * @path /prompts/{promptId}
      * @allow (get) User 'A' can read their own prompt.
-     * @allow (list) Any signed-in user can list prompts (but will only see their own due to the 'get' rule).
+     * @allow (list) Any signed-in user can list prompts but MUST filter by userId.
      * @allow (create) User 'A' can create a prompt with themselves as the owner.
      * @allow (update) User 'A' can update their own prompt.
      * @allow (delete) User 'A' can delete their own prompt.
-     * @deny (get) User 'B' cannot read User A's prompt.
-     * @deny (create) User 'B' cannot create a prompt owned by User A.
-     * @deny (update) User 'B' cannot update User A's prompt.
-     * @deny (delete) User 'B' cannot delete User A's prompt.
      * @principle Enforces document ownership for writes and restricts access to a user's own prompts.
      */
     match /prompts/{promptId} {
       allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn();
+      allow list: if isSignedIn() && request.query.limit <= 100 && request.query.filters.userId == request.auth.uid;
       allow create: if isSignedIn()
-                      && request.resource.data.userId == request.auth.uid
                       && validatePromptData(request.resource.data);
       allow update: if isSignedIn()
                       && resource.data.userId == request.auth.uid

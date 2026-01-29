@@ -23,6 +23,16 @@ export const PromptSchema = z.object({
   fields: z.array(PromptFieldSchema).optional(),
 });
 
+export const UserProfileSchema = z.object({
+  uid: z.string(),
+  email: z.string().email().nullable(),
+  displayName: z.string().nullable(),
+  photoURL: z.string().nullable(),
+  createdAt: z.any().optional(), // serverTimestamp
+  updatedAt: z.any().optional(),
+});
+
 export type PromptFieldType = z.infer<typeof PromptFieldTypeSchema>;
 export type PromptField = z.infer<typeof PromptFieldSchema>;
 export type Prompt = z.infer<typeof PromptSchema>;
+export type UserProfile = z.infer<typeof UserProfileSchema>;

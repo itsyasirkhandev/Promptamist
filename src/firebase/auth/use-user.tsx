@@ -8,10 +8,14 @@ import React, {
   useState,
 } from "react"
 import type { User, IdTokenResult } from "firebase/auth"
-import { useAuth } from "@/firebase/provider"
+import { useAuth, useFirestore } from "@/firebase/provider"
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
+import { userProfileConverter } from "@/firebase/converters"
+import type { UserProfile } from "@/lib/types"
 
 export type UserData = {
   user: User | null;
+  profile: UserProfile | null;
   claims: IdTokenResult | null;
   isLoaded: boolean;
   logout: () => Promise<void>;
@@ -19,6 +23,7 @@ export type UserData = {
 
 const UserContext = createContext<UserData>({
   user: null,
+  profile: null,
   claims: null,
   isLoaded: false,
   logout: async () => {},
@@ -26,7 +31,9 @@ const UserContext = createContext<UserData>({
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const auth = useAuth()
+  const firestore = useFirestore()
   const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [claims, setClaims] = useState<IdTokenResult | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -40,35 +47,59 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (!auth) {
+    if (!auth || !firestore) {
       setIsLoaded(false)
       return
     }
 
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      setUser(user)
-      if (user) {
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      setUser(firebaseUser)
+      if (firebaseUser) {
         // Immediate cookie sync for server-side PPR
         fetch('/api/auth/session', {
             method: 'POST',
-            body: JSON.stringify({ uid: user.uid }),
+            body: JSON.stringify({ uid: firebaseUser.uid }),
             headers: { 'Content-Type': 'application/json' },
         });
 
-        const tokenResult = await user.getIdTokenResult()
+        const tokenResult = await firebaseUser.getIdTokenResult()
         setClaims(tokenResult)
+
+        // Sync/Fetch profile
+        const profileRef = doc(firestore, "users", firebaseUser.uid).withConverter(userProfileConverter);
+        try {
+            const profileSnap = await getDoc(profileRef);
+            if (!profileSnap.exists()) {
+                const newProfile: UserProfile = {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    displayName: firebaseUser.displayName,
+                    photoURL: firebaseUser.photoURL,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                };
+                await setDoc(profileRef, newProfile);
+                setProfile(newProfile);
+            } else {
+                setProfile(profileSnap.data());
+            }
+        } catch (err) {
+            console.error("Error fetching/syncing user profile:", err);
+        }
+
       } else {
         setClaims(null)
+        setProfile(null)
       }
       setIsLoaded(true)
     })
 
     return () => unsubscribe()
-  }, [auth])
+  }, [auth, firestore])
 
   const value = useMemo(
-    () => ({ user, claims, isLoaded, logout }),
-    [user, claims, isLoaded]
+    () => ({ user, profile, claims, isLoaded, logout }),
+    [user, profile, claims, isLoaded]
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
+import { getAuth, Auth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, Firestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,9 +13,27 @@ const firebaseConfig = {
 };
 
 function initializeFirebase() {
-  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  if (getApps().length > 0) {
+    const app = getApp();
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+    return { app, auth, firestore };
+  }
+
+  const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const firestore = getFirestore(app);
+
+  if (process.env.NODE_ENV === 'development') {
+    if (process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST) {
+        connectAuthEmulator(auth, `http://${process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST}`);
+    }
+    if (process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST) {
+        const [host, port] = process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST.split(':');
+        connectFirestoreEmulator(firestore, host, parseInt(port));
+    }
+  }
+
   return { app, auth, firestore };
 }
 

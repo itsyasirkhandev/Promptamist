@@ -2,11 +2,20 @@
 
 import { cacheLife, cacheTag } from 'next/cache';
 import type { Prompt } from './types';
+import { PromptSchema } from './schemas';
 
 async function getAdminDb() {
     const admin = await import('firebase-admin');
     
     if (!admin.apps.length) {
+        if (process.env.FIRESTORE_EMULATOR_HOST) {
+            console.log(`[Server Cache] Connecting to Firestore Emulator: ${process.env.FIRESTORE_EMULATOR_HOST}`);
+            admin.initializeApp({
+                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'dev-project',
+            });
+            return admin.firestore();
+        }
+
         const privateKey = process.env.FIREBASE_PRIVATE_KEY;
         const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
         const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
@@ -43,6 +52,26 @@ async function getAdminDb() {
     return admin.firestore();
 }
 
+function mapToPrompt(doc: any): Prompt {
+    const data = doc.data();
+    const promptData = {
+        id: doc.id,
+        title: data.title || '',
+        content: data.content || '',
+        tags: data.tags || [],
+        userId: data.userId || '',
+        isTemplate: data.isTemplate || false,
+        fields: data.fields || [],
+        // Convert Admin Timestamp to serializable object
+        createdAt: data.createdAt ? {
+            seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
+            nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
+        } : null,
+    };
+
+    return PromptSchema.parse(promptData);
+}
+
 export async function getPromptsCached(userId: string): Promise<Prompt[]> {
   console.log(`[use cache] getPromptsCached called for ${userId.slice(0, 5)}...`);
   cacheLife('minutes');
@@ -57,23 +86,7 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
       .get();
 
     console.log(`[use cache] Admin SDK fetch successful. Count: ${snapshot.docs.length}`);
-    return snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            title: data.title || '',
-            content: data.content || '',
-            tags: data.tags || [],
-            userId: data.userId || '',
-            isTemplate: data.isTemplate || false,
-            fields: data.fields || [],
-            // Convert Admin Timestamp to serializable object
-            createdAt: data.createdAt ? {
-                seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
-                nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
-            } : null,
-        } satisfies Prompt;
-    });
+    return snapshot.docs.map(mapToPrompt);
   } catch (error) {
     console.error("[Server Cache] Error fetching prompts with Admin SDK:", error);
     // Return empty array so the client-side fallback can take over
@@ -90,22 +103,7 @@ export async function getPromptByIdCached(id: string): Promise<Prompt | null> {
         const doc = await db.collection('prompts').doc(id).get();
         if (!doc.exists) return null;
         
-        const data = doc.data();
-        if (!data) return null;
-
-        return {
-            id: doc.id,
-            title: data.title || '',
-            content: data.content || '',
-            tags: data.tags || [],
-            userId: data.userId || '',
-            isTemplate: data.isTemplate || false,
-            fields: data.fields || [],
-            createdAt: data.createdAt ? {
-                seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
-                nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
-            } : null,
-        } satisfies Prompt;
+        return mapToPrompt(doc);
     } catch (error) {
         console.error("[Server Cache] Error fetching prompt by id with Admin SDK:", error);
         return null;
