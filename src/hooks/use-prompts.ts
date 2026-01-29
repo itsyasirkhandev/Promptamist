@@ -77,6 +77,8 @@ export function usePrompts() {
         await addDoc(promptsRef, newPrompt);
         // Server cache invalidation is still good for SEO/initial load
         await revalidateUserPrompts(user.uid);
+        // 2. Refresh the current route to pull new cached data
+        router.refresh();
     } catch (serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: 'prompts',

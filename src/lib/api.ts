@@ -1,5 +1,6 @@
 'use server';
 
+// Re-exporting cached functions for server-side use
 import { getPromptsCached, getPromptByIdCached, getUserProfileCached } from './api-cache';
 import type { Prompt, UserProfile } from './types';
 
