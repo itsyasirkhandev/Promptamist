@@ -3,8 +3,6 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
-    // @ts-ignore
-    dynamicIO: true,
     optimizePackageImports: [
         'lucide-react',
         '@radix-ui/react-avatar',

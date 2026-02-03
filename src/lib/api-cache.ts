@@ -1,5 +1,3 @@
-'use cache';
-
 import { cacheLife, cacheTag } from 'next/cache';
 import type { Prompt, UserProfile } from './types';
 import { PromptSchema } from './schemas';
@@ -7,8 +5,10 @@ import { getAdminDb } from './firebase-admin';
 
 /**
  * Ensures an object is a clean, serializable plain object.
+ * This is CRITICAL for 'use cache' and Server Components.
  */
 function toPlainObject<T>(obj: T): T {
+    if (obj === null || obj === undefined) return obj;
     return JSON.parse(JSON.stringify(obj));
 }
 
@@ -35,10 +35,12 @@ function mapToPrompt(doc: any): Prompt {
         } : null,
     };
 
-    return PromptSchema.parse(promptData);
+    // Parse with Zod and then immediately convert to POJO to strip any potential prototype baggage
+    return toPlainObject(PromptSchema.parse(promptData));
 }
 
 export async function getUserProfileCached(userId: string): Promise<UserProfile | null> {
+    'use cache';
     cacheLife('days');
     cacheTag(`user-profile-${userId}`);
 
@@ -73,7 +75,8 @@ export async function getUserProfileCached(userId: string): Promise<UserProfile 
 }
 
 export async function getPromptsCached(userId: string): Promise<Prompt[]> {
-  cacheLife('minutes');
+  'use cache';
+  cacheLife('days');
   cacheTag(`prompts-user-${userId}`);
 
   try {
@@ -93,7 +96,8 @@ export async function getPromptsCached(userId: string): Promise<Prompt[]> {
 }
 
 export async function getPromptByIdCached(id: string): Promise<Prompt | null> {
-    cacheLife('minutes');
+    'use cache';
+    cacheLife('days');
     cacheTag(`prompt-${id}`);
 
     try {
