@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X, Edit, Trash2, Wand2, ClipboardPaste, GripVertical } from "lucide-react";
+import { PlusCircle, X, Edit, Trash2, Wand2, ClipboardPaste, GripVertical, Loader2 } from "lucide-react";
 import { Menu, Item, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 
@@ -32,6 +31,8 @@ import { ContentEditable } from "./ContentEditable";
 import { cn } from "@/lib/utils";
 
 import { PromptFieldSchema } from "@/lib/schemas";
+import { useTimeoutAction } from "@/hooks/use-timeout-action";
+import { ServerBusyRetry } from "./ui/server-busy-retry";
 
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100, "Title cannot exceed 100 characters."),
@@ -267,6 +268,31 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
   };
 
 
+  const { 
+    execute: submitForm, 
+    isBusy, 
+    retry, 
+    isLoading: isSubmitting 
+  } = useTimeoutAction({
+    action: async (values: any) => {
+        if (isEditing && prompt) {
+            await updatePrompt(prompt.id, values);
+            toast({
+                title: "Prompt Updated!",
+                description: "Your prompt has been successfully updated.",
+            });
+        } else {
+            await addPrompt(values);
+            toast({
+                title: "Prompt Created!",
+                description: "Your new prompt has been saved to your library.",
+            });
+        }
+        router.push("/prompts");
+    }
+  });
+
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     const finalValues = {
       ...values,
@@ -281,21 +307,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
         : [],
     };
     
-    if (isEditing && prompt) {
-        updatePrompt(prompt.id, finalValues);
-        toast({
-            title: "Prompt Updated!",
-            description: "Your prompt has been successfully updated.",
-        });
-    } else {
-        addPrompt(finalValues);
-        toast({
-            title: "Prompt Created!",
-            description: "Your new prompt has been saved to your library.",
-        });
-    }
-
-    router.push("/prompts");
+    submitForm(finalValues).catch(console.error);
   }
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -561,10 +573,20 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
                 </div>
             </div>
 
-            <div className="flex justify-end">
-                <Button type="submit" className="w-full sm:w-auto">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {isEditing ? 'Save Changes' : 'Save Prompt'}
+            <div className="flex flex-col gap-4 items-end">
+                {isBusy && <ServerBusyRetry onRetry={retry} className="w-full" />}
+                <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                             <Loader2 className="h-4 w-4 animate-spin" />
+                             Saving...
+                        </div>
+                    ) : (
+                        <>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            {isEditing ? 'Save Changes' : 'Save Prompt'}
+                        </>
+                    )}
                 </Button>
             </div>
           </form>
@@ -590,4 +612,3 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     </>
   );
 }
-

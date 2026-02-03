@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -24,9 +23,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, PlusCircle } from "lucide-react";
+import { X, PlusCircle, Loader2 } from "lucide-react";
 import { usePrompts } from "@/hooks/use-prompts";
 import { useToast } from "@/hooks/use-toast";
+import { useTimeoutAction } from "@/hooks/use-timeout-action";
+import { ServerBusyRetry } from "./ui/server-busy-retry";
 
 const saveSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters.").max(100),
@@ -90,19 +91,30 @@ export function SavePromptDialog({
     form.setValue("tags", tags.filter(tag => tag !== tagToRemove));
   };
 
+  const {
+    execute: submitSave,
+    isBusy,
+    retry,
+    isLoading
+  } = useTimeoutAction({
+    action: async (values: SaveFormValues) => {
+        await addPrompt({
+            title: values.title,
+            content: generatedContent,
+            tags: values.tags,
+            isTemplate: false,
+            fields: [],
+        });
+        toast({
+            title: "Prompt Saved!",
+            description: "The new prompt has been added to your library.",
+        });
+        onSaveSuccess();
+    }
+  });
+
   const handleSave = (values: SaveFormValues) => {
-    addPrompt({
-      title: values.title,
-      content: generatedContent,
-      tags: values.tags,
-      isTemplate: false,
-      fields: [],
-    });
-    toast({
-      title: "Prompt Saved!",
-      description: "The new prompt has been added to your library.",
-    });
-    onSaveSuccess();
+    submitSave(values).catch(console.error);
   };
 
   return (
@@ -163,12 +175,24 @@ export function SavePromptDialog({
                 </FormItem>
               )}
             />
-             <DialogFooter>
-                <Button type="submit">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Save Prompt
-                </Button>
-            </DialogFooter>
+             <div className="flex flex-col gap-4">
+                {isBusy && <ServerBusyRetry onRetry={retry} />}
+                <DialogFooter>
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Save Prompt
+                            </>
+                        )}
+                    </Button>
+                </DialogFooter>
+             </div>
           </form>
         </Form>
       </DialogContent>
