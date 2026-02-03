@@ -56,22 +56,29 @@ function mapToPrompt(doc: any): Prompt {
     const data = doc.data();
     if (!data) throw new Error(`Document ${doc.id} has no data`);
     
+    // Explicitly construct a plain object with primitive values
     const promptData = {
-        id: doc.id,
-        title: data.title || '',
-        content: data.content || '',
-        tags: data.tags || [],
-        userId: data.userId || '',
-        isTemplate: data.isTemplate || false,
-        fields: data.fields || [],
+        id: String(doc.id),
+        title: String(data.title || ''),
+        content: String(data.content || ''),
+        tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+        userId: String(data.userId || ''),
+        isTemplate: Boolean(data.isTemplate),
+        fields: Array.isArray(data.fields) ? data.fields.map((f: any) => ({
+            id: String(f.id),
+            name: String(f.name),
+            type: String(f.type) as any,
+            options: Array.isArray(f.options) ? f.options.map(String) : undefined,
+        })) : [],
         // Convert Admin Timestamp to serializable object
         createdAt: data.createdAt ? {
-            seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
-            nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
+            seconds: Number(data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds),
+            nanoseconds: Number(data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds),
         } : null,
     };
 
-    return PromptSchema.parse(promptData);
+    // JSON parse/stringify is the safest way to ensure NO non-serializable properties (like null prototypes) remain
+    return JSON.parse(JSON.stringify(PromptSchema.parse(promptData)));
 }
 
 export async function getUserProfileCached(userId: string): Promise<UserProfile | null> {
@@ -87,20 +94,22 @@ export async function getUserProfileCached(userId: string): Promise<UserProfile 
         const data = doc.data();
         if (!data) return null;
 
-        return {
-            uid: userId,
-            email: data.email || null,
-            displayName: data.displayName || null,
-            photoURL: data.photoURL || null,
+        const profileData = {
+            uid: String(userId),
+            email: data.email ? String(data.email) : null,
+            displayName: data.displayName ? String(data.displayName) : null,
+            photoURL: data.photoURL ? String(data.photoURL) : null,
             createdAt: data.createdAt ? {
-                seconds: data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds,
-                nanoseconds: data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds,
+                seconds: Number(data.createdAt._seconds !== undefined ? data.createdAt._seconds : data.createdAt.seconds),
+                nanoseconds: Number(data.createdAt._nanoseconds !== undefined ? data.createdAt._nanoseconds : data.createdAt.nanoseconds),
             } : null,
             updatedAt: data.updatedAt ? {
-                seconds: data.updatedAt._seconds !== undefined ? data.updatedAt._seconds : data.updatedAt.seconds,
-                nanoseconds: data.updatedAt._nanoseconds !== undefined ? data.updatedAt._nanoseconds : data.updatedAt.nanoseconds,
+                seconds: Number(data.updatedAt._seconds !== undefined ? data.updatedAt._seconds : data.updatedAt.seconds),
+                nanoseconds: Number(data.updatedAt._nanoseconds !== undefined ? data.updatedAt._nanoseconds : data.updatedAt.nanoseconds),
             } : null,
-        } as UserProfile;
+        };
+
+        return JSON.parse(JSON.stringify(profileData));
     } catch (error) {
         console.error("[Server Cache] Error fetching profile with Admin SDK:", error);
         return null;

@@ -26,8 +26,8 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: [
           {
-            key: 'Permissions-Policy',
-            value: 'browsing-topics=(), run-ad-auction=(), join-ad-interest-group=(), private-aggregation=()',
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
         ],
       },
