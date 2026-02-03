@@ -5,20 +5,23 @@ import type { Prompt } from '@/lib/types';
 import { useAuth, useFirestore, useUser } from '@/firebase';
 import {
   collection,
-  addDoc,
-  serverTimestamp,
   query,
   where,
   onSnapshot,
   orderBy,
   doc,
-  updateDoc,
-  deleteDoc,
 } from 'firebase/firestore';
+import { PromptSchema } from '@/lib/schemas';
 import { promptConverter } from '@/firebase/converters';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { revalidateUserPrompts, revalidatePrompt } from '@/lib/actions';
+import { 
+    revalidateUserPrompts, 
+    revalidatePrompt, 
+    createPromptAction, 
+    updatePromptAction, 
+    deletePromptAction 
+} from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 
 export function usePrompts() {
@@ -65,66 +68,46 @@ export function usePrompts() {
   }, [firestore, user]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
-    if (!firestore || !user) return;
-    const promptsRef = collection(firestore, 'prompts').withConverter(promptConverter);
-    const newPrompt = {
-      ...promptData,
-      userId: user.uid,
-      createdAt: serverTimestamp() as any, // Cast as any because serverTimestamp() is a FieldValue, but Prompt expects {seconds, nanoseconds} after fetch
-    } as Prompt;
-
+    if (!user) return;
     try {
-        await addDoc(promptsRef, newPrompt);
-        // Fire and forget revalidation in the background
-        revalidateUserPrompts(user.uid).catch(console.error);
+        await createPromptAction(promptData);
         router.refresh();
-    } catch (serverError) {
+    } catch (err) {
+        console.error("Failed to create prompt:", err);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: 'prompts',
             operation: 'create',
-            requestResourceData: newPrompt,
         }));
     }
-  }, [firestore, user, router]);
+  }, [user, router]);
 
   const updatePrompt = useCallback(async (promptId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) => {
-    if (!firestore || !user) return;
-    const promptRef = doc(firestore, 'prompts', promptId);
+    if (!user) return;
     try {
-        await updateDoc(promptRef, updatedData);
-        // Fire and forget revalidation in the background
-        Promise.all([
-            revalidateUserPrompts(user.uid),
-            revalidatePrompt(promptId)
-        ]).catch(console.error);
+        await updatePromptAction(promptId, updatedData);
         router.refresh();
-    } catch (serverError) {
+    } catch (err) {
+        console.error("Failed to update prompt:", err);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: `prompts/${promptId}`,
             operation: 'update',
-            requestResourceData: updatedData,
         }));
     }
-  }, [firestore, user, router]);
+  }, [user, router]);
 
   const deletePrompt = useCallback(async (promptId: string) => {
-    if (!firestore || !user) return;
-    const promptRef = doc(firestore, 'prompts', promptId);
+    if (!user) return;
     try {
-        await deleteDoc(promptRef);
-        // Fire and forget revalidation in the background
-        Promise.all([
-            revalidateUserPrompts(user.uid),
-            revalidatePrompt(promptId)
-        ]).catch(console.error);
+        await deletePromptAction(promptId);
         router.refresh();
-    } catch (serverError) {
+    } catch (err) {
+        console.error("Failed to delete prompt:", err);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: `prompts/${promptId}`,
             operation: 'delete',
         }));
     }
-  }, [firestore, user, router]);
+  }, [user, router]);
 
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>();

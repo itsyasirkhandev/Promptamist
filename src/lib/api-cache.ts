@@ -4,7 +4,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import type { Prompt, UserProfile } from './types';
 import { PromptSchema } from './schemas';
 
-async function getAdminDb() {
+export async function getAdminDb() {
     const admin = await import('firebase-admin');
     
     if (!admin.apps.length) {

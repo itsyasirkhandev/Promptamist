@@ -13,7 +13,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { userProfileConverter } from "@/firebase/converters"
 import type { UserProfile } from "@/lib/types"
 import { getUserProfile } from "@/lib/api"
-import { revalidateUserProfile } from "@/lib/actions"
+import { revalidateUserProfile, syncUserProfileAction } from "@/lib/actions"
 
 export type UserData = {
   user: User | null;
@@ -81,26 +81,20 @@ export const UserProvider = ({
                 if (cachedProfile) {
                     setProfile(cachedProfile);
                 } else {
-                    // 2. Fallback to direct Firestore fetch if not in cache
-                    const profileRef = doc(firestore, "users", firebaseUser.uid).withConverter(userProfileConverter);
-                    const profileSnap = await getDoc(profileRef);
+                    // 2. Fallback to server action to sync/fetch
+                    const profileData = {
+                        uid: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        displayName: firebaseUser.displayName,
+                        photoURL: firebaseUser.photoURL,
+                    };
                     
-                    if (!profileSnap.exists()) {
-                        const newProfile: UserProfile = {
-                            uid: firebaseUser.uid,
-                            email: firebaseUser.email,
-                            displayName: firebaseUser.displayName,
-                            photoURL: firebaseUser.photoURL,
-                            createdAt: serverTimestamp(),
-                            updatedAt: serverTimestamp(),
-                        };
-                        await setDoc(profileRef, newProfile);
-                        setProfile(newProfile);
-                        await revalidateUserProfile(firebaseUser.uid);
-                    } else {
-                        const p = profileSnap.data();
-                        setProfile(p);
-                        await revalidateUserProfile(firebaseUser.uid);
+                    await syncUserProfileAction(profileData);
+                    
+                    // After syncing, we can fetch the profile again or just set it
+                    const updatedProfile = await getUserProfile(firebaseUser.uid);
+                    if (updatedProfile) {
+                        setProfile(updatedProfile);
                     }
                 }
             } catch (err) {

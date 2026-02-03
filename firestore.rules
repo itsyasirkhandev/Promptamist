@@ -2,16 +2,9 @@
  * @file Firestore Security Rules
  * @version 2
  *
- * @description This ruleset enforces a user-ownership model for AI prompts. Users can only read their own profile data and manage their own prompts.
- *
- * Data Structure:
- * - /users/{userId}: Stores public user profile information, readable only by the user themselves.
- * - /prompts/{promptId}: Stores AI prompts created by users, accessible only to the creator.
- *
- * Key Security Decisions:
- * - Users can only read their own profile data (get). Listing all users is disallowed.
- * - Users can only create, update, and delete their own prompts.
- * - The prompt document stores the userId of the creator for ownership checks.
+ * @description This ruleset enforces a user-ownership model for AI prompts. 
+ * ALL mutations (create, update, delete) are handled via Server Actions using the Admin SDK,
+ * so client-side writes are strictly disallowed.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -19,7 +12,6 @@ service cloud.firestore {
 
     /**
      * @description Checks if a user is signed in.
-     * @return {bool} True if the user is signed in, false otherwise.
      */
     function isSignedIn() {
       return request.auth != null;
@@ -27,69 +19,29 @@ service cloud.firestore {
 
     /**
      * @description Checks if the request is made by the owner of the resource.
-     * @param {string} userId The user ID to compare with the request's auth UID.
-     * @return {bool} True if the request is made by the owner, false otherwise.
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
-    /**
-     * @description Validates the character limits and types for the prompt fields.
-     */
-    function validatePromptData(data) {
-      let requiredFields = ['title', 'content', 'tags', 'userId', 'createdAt'];
-      let optionalFields = ['isTemplate', 'fields'];
-      let allFields = requiredFields.concat(optionalFields);
-      
-      return data.keys().hasAll(requiredFields)
-        && data.keys().hasOnly(allFields)
-        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
-        && data.content is string && data.content.size() > 0 && data.content.size() <= 5000
-        && data.tags is list && data.tags.size() <= 30
-        && data.userId == request.auth.uid
-        && data.createdAt is timestamp
-        && (!('isTemplate' in data) || data.isTemplate is bool)
-        && (!('fields' in data) || data.fields is list && data.fields.size() <= 50);
-    }
     
     /**
      * @description Rule for /users/{userId} documents.
-     * @path /users/{userId}
-     * @allow (get) User 'A' can read their own profile data.
-     * @deny (list) No one can list all users.
-     * @deny (create) No one can create a user document directly.
-     * @deny (update) No one can update a user document directly.
-     * @deny (delete) No one can delete a user document directly.
-     * @principle Enforces document ownership for reads and prevents unauthorized data access.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId); // Allow users to create their own profile
-      allow update: if isOwner(userId); // Allow users to update their own profile
-      allow delete: if false;
+      allow write: if false; // Disallow client-side writes (handled by Admin SDK)
     }
 
     /**
      * @description Rule for /prompts/{promptId} documents.
-     * @path /prompts/{promptId}
-     * @allow (get) User 'A' can read their own prompt.
-     * @allow (list) Any signed-in user can list prompts but MUST filter by userId.
-     * @allow (create) User 'A' can create a prompt with themselves as the owner.
-     * @allow (update) User 'A' can update their own prompt.
-     * @allow (delete) User 'A' can delete their own prompt.
-     * @principle Enforces document ownership for writes and restricts access to a user's own prompts.
      */
     match /prompts/{promptId} {
+      // Allow read access for real-time updates (onSnapshot)
       allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn() && request.query.limit <= 100 && request.query.filters.userId == request.auth.uid;
-      allow create: if isSignedIn()
-                      && validatePromptData(request.resource.data);
-      allow update: if isSignedIn()
-                      && resource.data.userId == request.auth.uid
-                      && validatePromptData(request.resource.data);
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && request.query.filters.userId == request.auth.uid;
+      
+      allow write: if false; // Disallow client-side writes (handled by Admin SDK)
     }
   }
 }
