@@ -63,7 +63,7 @@ export const UserProvider = ({
       setUser(firebaseUser)
       if (firebaseUser) {
         // Immediate cookie sync for server-side PPR
-        fetch('/api/auth/session', {
+        await fetch('/api/auth/session', {
             method: 'POST',
             body: JSON.stringify({ uid: firebaseUser.uid }),
             headers: { 'Content-Type': 'application/json' },

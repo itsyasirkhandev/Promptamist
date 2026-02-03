@@ -102,34 +102,67 @@ export async function deletePromptAction(promptId: string) {
 }
 
 /**
+
  * Syncs the user profile using the Admin SDK.
+
  * Creates a new profile if it doesn't exist.
+
  */
+
 export async function syncUserProfileAction(profileData: Omit<UserProfile, 'createdAt' | 'updatedAt'>) {
+
   const userId = await getSessionUserId();
+
   if (!userId || userId !== profileData.uid) throw new Error('Unauthorized');
 
+
+
   const db = await getAdminDb();
+
   const admin = await import('firebase-admin');
+
   const userRef = db.collection('users').doc(userId);
+
   const doc = await userRef.get();
 
+
+
+  const updatePayload: any = {
+
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+
+    email: profileData.email ?? null,
+
+    displayName: profileData.displayName ?? null,
+
+    photoURL: profileData.photoURL ?? null,
+
+  };
+
+
+
   if (!doc.exists) {
+
     const newProfile = {
-      ...profileData,
+
+      ...updatePayload,
+
+      uid: profileData.uid,
+
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+
     };
+
     await userRef.set(newProfile);
+
   } else {
-    await userRef.update({
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      // Optionally update other fields like photoURL or displayName if they changed
-      email: profileData.email,
-      displayName: profileData.displayName,
-      photoURL: profileData.photoURL,
-    });
+
+    await userRef.update(updatePayload);
+
   }
 
+
+
   await revalidateUserProfile(userId);
+
 }
