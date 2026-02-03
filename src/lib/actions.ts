@@ -2,7 +2,7 @@
 
 import { updateTag } from 'next/cache';
 import { cookies } from 'next/headers';
-import { getAdminDb } from './api-cache';
+import { getAdminDb } from './firebase-admin';
 import { PromptSchema, UserProfileSchema } from './schemas';
 import type { Prompt, UserProfile } from './types';
 
