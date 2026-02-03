@@ -9,6 +9,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { AuthStateGate } from '@/components/auth/AuthStateGate';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { getUserProfile } from '@/lib/api';
+import { Analytics } from '@vercel/analytics/next';
 
 const siteUrl = "https://promptamist.vercel.app/";
 
@@ -84,6 +85,7 @@ export default function RootLayout({
             </ProfileHydration>
           </Suspense>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
