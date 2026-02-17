@@ -8,17 +8,16 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import { useState } from 'react';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { SignUpSchema, type SignUpValues } from '@/lib/schemas';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { syncUserProfile } from '@/lib/actions';
 
 
 export function EmailSignUpForm() {
   const { toast } = useToast();
   const auth = useAuth();
-  const firestore = useFirestore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +34,7 @@ export function EmailSignUpForm() {
   });
 
   async function onSubmit(values: SignUpValues) {
-    if (!auth || !firestore) return;
+    if (!auth) return;
     setIsSubmitting(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
@@ -44,17 +43,15 @@ export function EmailSignUpForm() {
       // Update Firebase Auth profile
       await updateProfile(userCredential.user, { displayName });
 
-      // Create Firestore user profile
-      const profileRef = doc(firestore, 'users', userCredential.user.uid);
-      await setDoc(profileRef, {
+      // Create Firestore user profile via Server Action (Admin SDK)
+      // This avoids permission denied errors during signup race conditions
+      await syncUserProfile({
         uid: userCredential.user.uid,
         email: values.email,
         displayName,
         firstName: values.firstName,
         lastName: values.lastName || null,
         photoURL: null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
       });
       
       toast({
