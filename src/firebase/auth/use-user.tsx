@@ -90,6 +90,8 @@ export const UserProvider = ({
                             uid: firebaseUser.uid,
                             email: firebaseUser.email,
                             displayName: firebaseUser.displayName,
+                            firstName: null, // Default for non-email signup (e.g. Google)
+                            lastName: null,
                             photoURL: firebaseUser.photoURL,
                             createdAt: serverTimestamp(),
                             updatedAt: serverTimestamp(),
