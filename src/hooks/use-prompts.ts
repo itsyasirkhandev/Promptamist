@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { Prompt } from '@/lib/types';
 import { useFirestore, useUser } from '@/firebase';
 import {
@@ -29,6 +29,7 @@ export function usePrompts() {
   const firestore = useFirestore();
   const { user } = useUser();
   const router = useRouter();
+  const retryCountRef = useRef(0);
 
   useEffect(() => {
     if (!firestore || !user) {
@@ -37,34 +38,56 @@ export function usePrompts() {
         return;
     }
 
-    const promptsRef = collection(firestore, 'prompts').withConverter(promptConverter);
-    const q = query(
-        promptsRef,
-        where('userId', '==', user.uid),
-        orderBy('createdAt', 'desc'),
-        limit(100)
-    );
+    let unsubscribe: () => void = () => {};
+    let isMounted = true;
 
-    const unsubscribe = onSnapshot(q, 
-        (snapshot) => {
-            const newPrompts = snapshot.docs.map(doc => doc.data());
-            setPrompts(newPrompts);
-            setIsLoaded(true);
-        },
-        (err) => {
-            console.error("Firestore snapshot failed", err);
-            // Handle specific errors like permission denied
-            if (err.code === 'permission-denied') {
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: 'prompts',
-                    operation: 'list',
-                }));
+    const startListener = (retryAttempt = 0) => {
+        if (!isMounted) return;
+
+        const promptsRef = collection(firestore, 'prompts').withConverter(promptConverter);
+        const q = query(
+            promptsRef,
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc'),
+            limit(100)
+        );
+
+        unsubscribe = onSnapshot(q, 
+            (snapshot) => {
+                const newPrompts = snapshot.docs.map(doc => doc.data());
+                setPrompts(newPrompts);
+                setIsLoaded(true);
+                retryCountRef.current = 0; // Reset on success
+            },
+            (err) => {
+                if (!isMounted) return;
+                console.warn("Firestore snapshot failed", err.code, err.message);
+                
+                // Handle transient permission errors during signup
+                if (err.code === 'permission-denied' && retryAttempt < 3) {
+                    const delay = 1000 * (retryAttempt + 1);
+                    console.log(`Retrying prompts listener in ${delay}ms... (Attempt ${retryAttempt + 1})`);
+                    setTimeout(() => startListener(retryAttempt + 1), delay);
+                    return;
+                }
+
+                if (err.code === 'permission-denied') {
+                    errorEmitter.emit('permission-error', new FirestorePermissionError({
+                        path: 'prompts',
+                        operation: 'list',
+                    }));
+                }
+                setIsLoaded(true);
             }
-            setIsLoaded(true);
-        }
-    );
+        );
+    };
 
-    return () => unsubscribe();
+    startListener();
+
+    return () => {
+        isMounted = false;
+        unsubscribe();
+    };
   }, [firestore, user, prompts.length, isLoaded]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
