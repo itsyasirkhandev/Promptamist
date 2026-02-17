@@ -61,16 +61,17 @@ export function usePrompts() {
             },
             (err) => {
                 if (!isMounted) return;
-                console.warn("Firestore snapshot failed", err.code, err.message);
                 
                 // Handle transient permission errors during signup
-                if (err.code === 'permission-denied' && retryAttempt < 3) {
-                    const delay = 1000 * (retryAttempt + 1);
-                    console.log(`Retrying prompts listener in ${delay}ms... (Attempt ${retryAttempt + 1})`);
+                // Increased to 5 retries with longer base delay
+                if (err.code === 'permission-denied' && retryAttempt < 5) {
+                    const delay = 1500 * (retryAttempt + 1);
+                    console.warn(`Retrying prompts listener in ${delay}ms... (Attempt ${retryAttempt + 1}/5)`);
                     setTimeout(() => startListener(retryAttempt + 1), delay);
                     return;
                 }
 
+                console.error("Firestore snapshot failed", err.code, err.message);
                 if (err.code === 'permission-denied') {
                     errorEmitter.emit('permission-error', new FirestorePermissionError({
                         path: 'prompts',
@@ -88,7 +89,7 @@ export function usePrompts() {
         isMounted = false;
         unsubscribe();
     };
-  }, [firestore, user, prompts.length, isLoaded]);
+  }, [firestore, user]); // Removed prompts.length and isLoaded from dependencies to prevent unnecessary re-runs
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
     if (!firestore || !user) return;

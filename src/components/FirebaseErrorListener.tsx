@@ -1,15 +1,24 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { errorEmitter } from "@/firebase/error-emitter"
 import { FirestorePermissionError } from "@/firebase/errors"
 
 export function FirebaseErrorListener() {
   const { toast } = useToast()
+  const sessionStartTime = useRef(Date.now())
 
   useEffect(() => {
     const handlePermissionError = (error: FirestorePermissionError) => {
+      // Ignore permission errors that happen within the first 10 seconds of the session
+      // (likely transient propagation delays during signup/signin)
+      const timeSinceStart = Date.now() - sessionStartTime.current;
+      if (timeSinceStart < 10000) {
+        console.warn("Ignoring transient Firestore Permission Error during session startup:", error.message);
+        return;
+      }
+
       console.error("Firestore Permission Error:", error.message, error.context)
       toast({
         variant: "destructive",

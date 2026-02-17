@@ -90,19 +90,23 @@ export const UserProvider = ({
                     // propagated to Firestore rules yet.
                     let profileSnap = null;
                     let retries = 0;
-                    while (retries < 3) {
+                    const maxRetries = 5; // Increased retries
+                    while (retries < maxRetries) {
                         try {
                             profileSnap = await getDoc(profileRef);
                             break;
                         } catch (err: any) {
                             if (err.code === 'permission-denied') {
-                                if (retries < 2) {
-                                    console.warn(`Permission denied on profile fetch, retrying (${retries + 1}/3)...`);
-                                    await new Promise(resolve => setTimeout(resolve, 500 * (retries + 1)));
+                                if (retries < maxRetries - 1) {
+                                    // Silence warning for the first couple of attempts
+                                    if (retries > 1) {
+                                        console.warn(`Permission denied on profile fetch, retrying (${retries + 1}/${maxRetries})...`);
+                                    }
+                                    await new Promise(resolve => setTimeout(resolve, 800 * (retries + 1)));
                                     retries++;
                                 } else {
-                                    // Last attempt failed, log but don't throw to avoid UI toast if possible
-                                    console.warn("Final profile fetch attempt failed with permission-denied. This is expected if the user is still being provisioned.");
+                                    // Last attempt failed
+                                    console.warn("Final profile fetch attempt failed with permission-denied. User may be new or rule propagation is slow.");
                                     break;
                                 }
                             } else {
@@ -114,7 +118,7 @@ export const UserProvider = ({
                     if (profileSnap && !profileSnap.exists()) {
                         // Wait a bit to avoid race condition with EmailSignUpForm which also creates the profile
                         // If it still doesn't exist, we create it (likely Google/OAuth signup)
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                         const secondCheck = await getDoc(profileRef);
                         
                         if (!secondCheck.exists()) {
@@ -142,8 +146,11 @@ export const UserProvider = ({
                         await revalidateUserProfile(firebaseUser.uid);
                     }
                 }
-            } catch (err) {
-                console.error("Error fetching/syncing user profile:", err);
+            } catch (err: any) {
+                // Only log as error if it's NOT a permission denied (which we handle as transient)
+                if (err.code !== 'permission-denied') {
+                    console.error("Error fetching/syncing user profile:", err);
+                }
             }
         }
 
