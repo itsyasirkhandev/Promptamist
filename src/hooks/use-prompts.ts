@@ -11,6 +11,7 @@ import {
   where,
   onSnapshot,
   orderBy,
+  limit,
   doc,
   updateDoc,
   deleteDoc,
@@ -40,7 +41,8 @@ export function usePrompts() {
     const q = query(
         promptsRef,
         where('userId', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(100)
     );
 
     const unsubscribe = onSnapshot(q, 

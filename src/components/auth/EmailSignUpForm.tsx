@@ -147,7 +147,12 @@ export function EmailSignUpForm() {
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
+                  <Input 
+                    type={showPassword ? 'text' : 'password'} 
+                    placeholder="••••••••" 
+                    autoComplete="new-password"
+                    {...field} 
+                  />
                   <Button
                     type="button"
                     variant="ghost"
@@ -171,7 +176,12 @@ export function EmailSignUpForm() {
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
+                  <Input 
+                    type={showConfirmPassword ? 'text' : 'password'} 
+                    placeholder="••••••••" 
+                    autoComplete="new-password"
+                    {...field} 
+                  />
                   <Button
                     type="button"
                     variant="ghost"

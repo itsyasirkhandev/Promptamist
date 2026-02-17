@@ -84,25 +84,55 @@ export const UserProvider = ({
                 } else {
                     // 2. Fallback to direct Firestore fetch if not in cache
                     const profileRef = doc(firestore, "users", firebaseUser.uid).withConverter(userProfileConverter);
-                    const profileSnap = await getDoc(profileRef);
                     
-                    if (!profileSnap.exists()) {
-                        const newProfile: UserProfile = {
-                            uid: firebaseUser.uid,
-                            email: firebaseUser.email,
-                            displayName: firebaseUser.displayName,
-                            firstName: null, // Default for non-email signup (e.g. Google)
-                            lastName: null,
-                            photoURL: firebaseUser.photoURL,
-                            createdAt: serverTimestamp(),
-                            updatedAt: serverTimestamp(),
-                        };
-                        await setDoc(profileRef, newProfile);
-                        setProfile(newProfile);
-                        await revalidateUserProfile(firebaseUser.uid);
-                    } else {
+                    // Add a small retry loop for 'missing or insufficient permissions' 
+                    // which often happens when a user JUST signed in and the token hasn't 
+                    // propagated to Firestore rules yet.
+                    let profileSnap = null;
+                    let retries = 0;
+                    while (retries < 3) {
+                        try {
+                            profileSnap = await getDoc(profileRef);
+                            break;
+                        } catch (err: any) {
+                            if (err.code === 'permission-denied' && retries < 2) {
+                                console.warn(`Permission denied on profile fetch, retrying (${retries + 1}/3)...`);
+                                await new Promise(resolve => setTimeout(resolve, 500 * (retries + 1)));
+                                retries++;
+                            } else {
+                                throw err;
+                            }
+                        }
+                    }
+                    
+                    if (profileSnap && !profileSnap.exists()) {
+                        // Wait a bit to avoid race condition with EmailSignUpForm which also creates the profile
+                        // If it still doesn't exist, we create it (likely Google/OAuth signup)
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        const secondCheck = await getDoc(profileRef);
+                        
+                        if (!secondCheck.exists()) {
+                            const newProfile: UserProfile = {
+                                uid: firebaseUser.uid,
+                                email: firebaseUser.email,
+                                displayName: firebaseUser.displayName,
+                                firstName: null, // Default for non-email signup (e.g. Google)
+                                lastName: null,
+                                photoURL: firebaseUser.photoURL,
+                                createdAt: serverTimestamp(),
+                                updatedAt: serverTimestamp(),
+                            };
+                            await setDoc(profileRef, newProfile);
+                            setProfile(newProfile);
+                            await revalidateUserProfile(firebaseUser.uid);
+                        } else {
+                            const p = secondCheck.data();
+                            setProfile(p || null);
+                            await revalidateUserProfile(firebaseUser.uid);
+                        }
+                    } else if (profileSnap) {
                         const p = profileSnap.data();
-                        setProfile(p);
+                        setProfile(p || null);
                         await revalidateUserProfile(firebaseUser.uid);
                     }
                 }
