@@ -42,12 +42,12 @@ export const ContentEditable = forwardRef<HTMLDivElement, ContentEditableProps>(
     if (html !== editor.innerText) {
         const selection = window.getSelection();
         const range = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
-        let startOffset = 0;
+        let _startOffset = 0;
         let startContainer: Node | null = null;
         
         if (range && editor.contains(range.startContainer)) {
             startContainer = range.startContainer;
-            startOffset = range.startOffset;
+            _startOffset = range.startOffset;
         }
 
         editor.innerHTML = renderToHTML(html, fields);

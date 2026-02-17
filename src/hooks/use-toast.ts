@@ -18,7 +18,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
-type ActionTypes = {
+type _ActionTypes = {
   ADD_TOAST: "ADD_TOAST";
   UPDATE_TOAST: "UPDATE_TOAST";
   DISMISS_TOAST: "DISMISS_TOAST";

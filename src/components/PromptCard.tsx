@@ -97,7 +97,7 @@ export function PromptCard({ prompt }: PromptCardProps) {
             title: "Prompt Deleted",
             description: "Your prompt has been successfully removed.",
           });
-        } catch (error) {
+        } catch (_error) {
           setIsDeleting(false);
           toast({
             variant: "destructive",

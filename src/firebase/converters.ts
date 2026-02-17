@@ -10,7 +10,7 @@ import { Prompt, PromptSchema, UserProfile } from '@/lib/schemas';
 export const promptConverter: FirestoreDataConverter<Prompt> = {
     toFirestore(prompt: Prompt): DocumentData {
         // Remove id from the data stored in Firestore
-        const { id, ...data } = prompt;
+        const { id: _id, ...data } = prompt;
         return data;
     },
     fromFirestore(

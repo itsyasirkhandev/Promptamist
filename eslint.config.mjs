@@ -34,8 +34,12 @@ export default [
       ...nextPlugin.configs["core-web-vitals"].rules,
       ...hooksPlugin.configs.recommended.rules,
       ...typescriptPlugin.configs.recommended.rules,
-      "@typescript-eslint/no-unused-vars": "warn",
-      "react-hooks/set-state-in-effect": "off", // Disable this specific strict rule if it's too aggressive for resets
+      "@typescript-eslint/no-unused-vars": ["warn", { 
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }],
+      "react-hooks/set-state-in-effect": "off",
     },
   },
 ];
