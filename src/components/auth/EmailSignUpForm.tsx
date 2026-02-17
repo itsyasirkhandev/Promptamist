@@ -106,7 +106,7 @@ export function EmailSignUpForm() {
               <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John" {...field} />
+                  <Input placeholder="John" {...field} autoComplete="given-name" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,7 +119,7 @@ export function EmailSignUpForm() {
               <FormItem>
                 <FormLabel>Last Name (Optional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Doe" {...field} />
+                  <Input placeholder="Doe" {...field} autoComplete="family-name" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -133,7 +133,7 @@ export function EmailSignUpForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="you@example.com" {...field} />
+                <Input placeholder="you@example.com" {...field} autoComplete="email" />
               </FormControl>
               <FormMessage />
             </FormItem>

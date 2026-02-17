@@ -95,10 +95,16 @@ export const UserProvider = ({
                             profileSnap = await getDoc(profileRef);
                             break;
                         } catch (err: any) {
-                            if (err.code === 'permission-denied' && retries < 2) {
-                                console.warn(`Permission denied on profile fetch, retrying (${retries + 1}/3)...`);
-                                await new Promise(resolve => setTimeout(resolve, 500 * (retries + 1)));
-                                retries++;
+                            if (err.code === 'permission-denied') {
+                                if (retries < 2) {
+                                    console.warn(`Permission denied on profile fetch, retrying (${retries + 1}/3)...`);
+                                    await new Promise(resolve => setTimeout(resolve, 500 * (retries + 1)));
+                                    retries++;
+                                } else {
+                                    // Last attempt failed, log but don't throw to avoid UI toast if possible
+                                    console.warn("Final profile fetch attempt failed with permission-denied. This is expected if the user is still being provisioned.");
+                                    break;
+                                }
                             } else {
                                 throw err;
                             }
