@@ -25,7 +25,6 @@ import { useToast } from "@/hooks/use-toast";
 import { usePrompts } from "@/hooks/use-prompts";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,

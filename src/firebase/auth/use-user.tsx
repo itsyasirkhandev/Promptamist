@@ -2,6 +2,7 @@
 
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -45,14 +46,14 @@ export const UserProvider = ({
   const [claims, setClaims] = useState<IdTokenResult | null>(null)
   const [isLoaded, setIsLoaded] = useState(!!initialProfile)
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (auth) {
       await Promise.all([
         auth.signOut(),
         fetch('/api/auth/session', { method: 'DELETE' })
       ]);
     }
-  };
+  }, [auth]);
 
   useEffect(() => {
     if (!auth || !firestore) {
@@ -122,7 +123,7 @@ export const UserProvider = ({
 
   const value = useMemo(
     () => ({ user, profile, claims, isLoaded, logout }),
-    [user, profile, claims, isLoaded]
+    [user, profile, claims, isLoaded, logout]
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

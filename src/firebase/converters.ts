@@ -5,7 +5,7 @@ import {
     DocumentData,
     Timestamp 
 } from 'firebase/firestore';
-import { Prompt, PromptSchema, UserProfile, UserProfileSchema } from '@/lib/schemas';
+import { Prompt, PromptSchema, UserProfile } from '@/lib/schemas';
 
 export const promptConverter: FirestoreDataConverter<Prompt> = {
     toFirestore(prompt: Prompt): DocumentData {

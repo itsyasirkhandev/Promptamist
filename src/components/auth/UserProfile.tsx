@@ -50,7 +50,7 @@ export function UserProfile() {
       .join('');
   };
 
-  const displayName = displayData.displayName || (displayData as any).email?.split('@')[0] || 'User';
+  const displayName = displayData.displayName || displayData.email?.split('@')[0] || 'User';
   const email = displayData.email || '';
   const photoURL = displayData.photoURL || undefined;
 

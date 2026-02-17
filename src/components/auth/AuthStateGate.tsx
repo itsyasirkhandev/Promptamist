@@ -3,7 +3,6 @@
 import { useUser } from '@/firebase';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Skeleton } from '../ui/skeleton';
 
 const PUBLIC_ROUTES = ['/'];
 const AUTH_ROUTE = '/auth';

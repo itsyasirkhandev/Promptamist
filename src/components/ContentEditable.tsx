@@ -56,27 +56,6 @@ export const ContentEditable = forwardRef<HTMLDivElement, ContentEditableProps>(
             if (startContainer) {
                 const newRange = document.createRange();
                 
-                // This is a simplified cursor restoration. A truly robust solution is much more complex.
-                // It works reasonably well for simple text edits.
-                let charCount = 0;
-                let found = false;
-                function findNodeAndOffset(parentNode: Node) {
-                    if (found) return;
-                    if (parentNode.nodeType === Node.TEXT_NODE) {
-                        const nextCharCount = charCount + (parentNode.nodeValue?.length || 0);
-                        if (startOffset <= nextCharCount) {
-                            newRange.setStart(parentNode, startOffset - charCount);
-                            newRange.collapse(true);
-                            found = true;
-                        }
-                        charCount = nextCharCount;
-                    } else {
-                        for (let i = 0; i < parentNode.childNodes.length; i++) {
-                            findNodeAndOffset(parentNode.childNodes[i]);
-                        }
-                    }
-                }
-                
                 // This logic is imperfect and has been simplified.
                 // We will just place the cursor at the end for now to avoid crashes.
                 const lastChild = editor.lastChild;

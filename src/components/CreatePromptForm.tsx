@@ -274,7 +274,7 @@ export function CreatePromptForm({ prompt, isEditing = false }: PromptFormProps)
     retry, 
     isLoading: isSubmitting 
   } = useTimeoutAction({
-    action: async (values: any) => {
+    action: async (values: z.infer<typeof formSchema>) => {
         if (isEditing && prompt) {
             await updatePrompt(prompt.id, values);
             toast({

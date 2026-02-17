@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ScrollAnimation } from './ScrollAnimation';
 
 export function CTA() {

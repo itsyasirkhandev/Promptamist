@@ -24,7 +24,7 @@ export function AppLayout({ children, isLandingPage = false }: { children: React
   );
 }
 
-function HeaderSkeleton({ isLandingPage }: { isLandingPage: boolean }) {
+function HeaderSkeleton({ isLandingPage }: { isLandingPage: boolean }) { // eslint-disable-line @typescript-eslint/no-unused-vars
     return (
         <div className="flex w-full items-center justify-between">
             <div className="flex items-center space-x-2">

@@ -30,8 +30,14 @@ export const UserProfileSchema = z.object({
   firstName: z.string().nullable(),
   lastName: z.string().nullable().optional(),
   photoURL: z.string().nullable(),
-  createdAt: z.any().optional(), // serverTimestamp
-  updatedAt: z.any().optional(),
+  createdAt: z.union([
+    z.object({ seconds: z.number(), nanoseconds: z.number() }),
+    z.any() // Allow FieldValue for writes
+  ]).optional(),
+  updatedAt: z.union([
+    z.object({ seconds: z.number(), nanoseconds: z.number() }),
+    z.any()
+  ]).optional(),
 });
 
 export type PromptFieldType = z.infer<typeof PromptFieldTypeSchema>;

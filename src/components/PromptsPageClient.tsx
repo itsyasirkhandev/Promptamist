@@ -1,13 +1,11 @@
 "use client";
 
-import { useUser } from "@/firebase";
-import { PromptsSkeleton } from "./PromptsSkeleton";
 import { FilePlus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 
 export function PromptsPageClient({ 
-    userId,
+    userId, // eslint-disable-line @typescript-eslint/no-unused-vars
     children 
 }: { 
     userId: string;

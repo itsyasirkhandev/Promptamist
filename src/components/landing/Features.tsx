@@ -1,4 +1,4 @@
-import { Library, Wand2, Tags, Copy, Zap, Search, Share2, Layers } from "lucide-react";
+import { Library, Wand2, Tags, Copy } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ScrollAnimation } from './ScrollAnimation';

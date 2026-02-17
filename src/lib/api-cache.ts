@@ -3,6 +3,7 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import type { Prompt, UserProfile } from './types';
 import { PromptSchema } from './schemas';
+import type { DocumentSnapshot } from 'firebase-admin/firestore';
 
 async function getAdminDb() {
     const admin = await import('firebase-admin');
@@ -52,7 +53,7 @@ async function getAdminDb() {
     return admin.firestore();
 }
 
-function mapToPrompt(doc: any): Prompt {
+function mapToPrompt(doc: DocumentSnapshot): Prompt {
     const data = doc.data();
     if (!data) throw new Error(`Document ${doc.id} has no data`);
     

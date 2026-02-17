@@ -29,9 +29,9 @@ export async function withTimeout<T>(
     const result = await promiseFn(controller.signal);
     clearTimeout(timeoutId);
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       throw new TimeoutError(`Server is busy, request took longer than ${timeoutMs}ms`);
     }
     throw error;

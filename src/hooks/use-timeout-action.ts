@@ -2,14 +2,14 @@
 import { useState, useCallback, useRef } from 'react';
 import { withTimeout, TimeoutError } from '@/lib/timeout';
 
-interface UseTimeoutActionOptions<T, Args extends any[]> {
+interface UseTimeoutActionOptions<T, Args extends unknown[]> {
   action: (...args: Args) => Promise<T>;
   timeoutMs?: number;
   onSuccess?: (data: T) => void;
-  onError?: (error: any) => void;
+  onError?: (error: Error) => void;
 }
 
-export function useTimeoutAction<T, Args extends any[]>({
+export function useTimeoutAction<T, Args extends unknown[]>({
   action,
   timeoutMs = 3500,
   onSuccess,
@@ -28,22 +28,23 @@ export function useTimeoutAction<T, Args extends any[]>({
       setError(null);
 
       try {
-        const result = await withTimeout((signal) => {
+        const result = await withTimeout(() => {
             return action(...args);
         }, timeoutMs);
         
         setIsLoading(false);
         if (onSuccess) onSuccess(result);
         return result;
-      } catch (err: any) {
+      } catch (err: unknown) {
         setIsLoading(false);
-        if (err instanceof TimeoutError) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        if (error instanceof TimeoutError) {
           setIsBusy(true);
         } else {
-          setError(err);
-          if (onError) onError(err);
+          setError(error);
+          if (onError) onError(error);
         }
-        throw err;
+        throw error;
       }
     },
     [action, timeoutMs, onSuccess, onError]

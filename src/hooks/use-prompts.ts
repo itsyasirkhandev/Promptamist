@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Prompt } from '@/lib/types';
-import { useAuth, useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import {
   collection,
   addDoc,
@@ -14,6 +14,7 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  FieldValue,
 } from 'firebase/firestore';
 import { promptConverter } from '@/firebase/converters';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -30,9 +31,9 @@ export function usePrompts() {
 
   useEffect(() => {
     if (!firestore || !user) {
-      setPrompts([]);
-      setIsLoaded(!!user);
-      return;
+        if (prompts.length > 0) setPrompts([]);
+        if (isLoaded !== !!user) setIsLoaded(!!user);
+        return;
     }
 
     const promptsRef = collection(firestore, 'prompts').withConverter(promptConverter);
@@ -62,7 +63,7 @@ export function usePrompts() {
     );
 
     return () => unsubscribe();
-  }, [firestore, user]);
+  }, [firestore, user, prompts.length, isLoaded]);
 
   const addPrompt = useCallback(async (promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>) => {
     if (!firestore || !user) return;
@@ -70,15 +71,15 @@ export function usePrompts() {
     const newPrompt = {
       ...promptData,
       userId: user.uid,
-      createdAt: serverTimestamp() as any, // Cast as any because serverTimestamp() is a FieldValue, but Prompt expects {seconds, nanoseconds} after fetch
-    } as Prompt;
+      createdAt: serverTimestamp() as unknown as FieldValue,
+    } as unknown as Prompt;
 
     try {
         await addDoc(promptsRef, newPrompt);
         // Fire and forget revalidation in the background
         revalidateUserPrompts(user.uid).catch(console.error);
         router.refresh();
-    } catch (serverError) {
+    } catch (_serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: 'prompts',
             operation: 'create',
@@ -98,7 +99,7 @@ export function usePrompts() {
             revalidatePrompt(promptId)
         ]).catch(console.error);
         router.refresh();
-    } catch (serverError) {
+    } catch (_serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: `prompts/${promptId}`,
             operation: 'update',
@@ -118,7 +119,7 @@ export function usePrompts() {
             revalidatePrompt(promptId)
         ]).catch(console.error);
         router.refresh();
-    } catch (serverError) {
+    } catch (_serverError) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: `prompts/${promptId}`,
             operation: 'delete',
