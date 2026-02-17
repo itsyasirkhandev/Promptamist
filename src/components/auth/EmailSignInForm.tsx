@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { FirebaseError } from 'firebase/app';
-import { AuthSchema, type AuthValues } from '@/lib/schemas';
+import { SignInSchema, type SignInValues } from '@/lib/schemas';
 
 export function EmailSignInForm() {
   const { toast } = useToast();
@@ -19,15 +19,15 @@ export function EmailSignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<AuthValues>({
-    resolver: zodResolver(AuthSchema),
+  const form = useForm<SignInValues>({
+    resolver: zodResolver(SignInSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  async function onSubmit(values: AuthValues) {
+  async function onSubmit(values: SignInValues) {
     if (!auth) return;
     setIsSubmitting(true);
     try {
