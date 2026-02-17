@@ -1,7 +1,7 @@
 'use server';
 
 import { updateTag } from 'next/cache';
-import type { UserProfile } from './types';
+import type { UserProfile, Prompt } from './types';
 
 /**
  * Revalidates the cache for a specific user's prompts.
@@ -101,4 +101,73 @@ export async function syncUserProfile(userData: {
             nanoseconds: data.updatedAt._nanoseconds !== undefined ? data.updatedAt._nanoseconds : data.updatedAt.nanoseconds,
         } : null,
     } as UserProfile;
+}
+
+/**
+ * Server action to create a new prompt using the Admin SDK.
+ */
+export async function createPrompt(userId: string, promptData: Omit<Prompt, 'id' | 'createdAt' | 'userId'>): Promise<Prompt> {
+    const admin = await import('firebase-admin');
+    const db = admin.firestore();
+    
+    const newPromptData = {
+        ...promptData,
+        userId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    const docRef = await db.collection('prompts').add(newPromptData);
+    updateTag(`prompts-user-${userId}`);
+    
+    return {
+        ...newPromptData,
+        id: docRef.id,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
+    } as unknown as Prompt;
+}
+
+/**
+ * Server action to update an existing prompt using the Admin SDK.
+ */
+export async function updatePromptAction(promptId: string, userId: string, updatedData: Partial<Omit<Prompt, 'id' | 'userId'>>) {
+    const admin = await import('firebase-admin');
+    const db = admin.firestore();
+    
+    // Safety check: Ensure the prompt belongs to the user
+    const docRef = db.collection('prompts').doc(promptId);
+    const doc = await docRef.get();
+    
+    if (!doc.exists || doc.data()?.userId !== userId) {
+        throw new Error("Unauthorized: You do not own this prompt.");
+    }
+
+    await docRef.update(updatedData);
+    
+    updateTag(`prompts-user-${userId}`);
+    updateTag(`prompt-${promptId}`);
+    
+    return true;
+}
+
+/**
+ * Server action to delete a prompt using the Admin SDK.
+ */
+export async function deletePromptAction(promptId: string, userId: string) {
+    const admin = await import('firebase-admin');
+    const db = admin.firestore();
+    
+    // Safety check: Ensure the prompt belongs to the user
+    const docRef = db.collection('prompts').doc(promptId);
+    const doc = await docRef.get();
+    
+    if (!doc.exists || doc.data()?.userId !== userId) {
+        throw new Error("Unauthorized: You do not own this prompt.");
+    }
+
+    await docRef.delete();
+    
+    updateTag(`prompts-user-${userId}`);
+    updateTag(`prompt-${promptId}`);
+    
+    return true;
 }

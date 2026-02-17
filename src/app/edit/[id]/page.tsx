@@ -16,6 +16,11 @@ export default async function EditPromptPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const initialPrompt = await getPromptById(id);
 
+  // Security check: Only allow the owner to edit the prompt
+  if (initialPrompt && initialPrompt.userId !== userId) {
+      redirect("/prompts");
+  }
+
   return (
     <AppLayout>
       <EditPromptClient initialPrompt={initialPrompt} />
